@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Routine Analytics v5</title>
+    <title>Performance Master v6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #0f172a; --card: #1e293b; --primary: #38bdf8;
-            --success: #4ade80; --warning: #fbbf24; --text: #f8fafc;
+            --success: #4ade80; --text: #f8fafc; --danger: #f43f5e;
         }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -17,173 +17,164 @@
         }
         .container { width: 100%; max-width: 450px; }
         .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
-        h2 { font-size: 0.85rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 0.8rem; margin: 0 0 12px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Estilo Humor e Produtividade */
+        /* Barras de Meta */
+        .goal-container { margin-bottom: 15px; }
+        .goal-header { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+        .goal-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
+        .goal-bar-fill { height: 100%; width: 0%; transition: 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+
+        /* Controles */
+        .counter-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #334155; }
+        .btn-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; font-size: 1.2rem; }
+        .counter-val { font-size: 1.1rem; font-weight: bold; min-width: 65px; text-align: center; }
+
         .emoji-group { display: flex; justify-content: space-around; margin: 10px 0; }
-        .emoji-btn { 
-            font-size: 1.8rem; background: none; border: 2px solid transparent; 
-            border-radius: 12px; cursor: pointer; padding: 5px; filter: grayscale(1); transition: 0.3s;
-        }
+        .emoji-btn { font-size: 1.8rem; background: none; border: 2px solid transparent; border-radius: 12px; filter: grayscale(1); transition: 0.3s; }
         .emoji-btn.active { filter: grayscale(0); border-color: var(--primary); background: #334155; }
 
-        .toggle-group { display: flex; gap: 10px; }
-        .toggle-btn { 
-            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155;
-            background: #0f172a; color: var(--text); font-weight: bold;
-        }
-        .toggle-btn.active { background: var(--success); color: #0f172a; border-color: var(--success); }
-
-        /* Contadores */
-        .counter-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #334155; }
-        .counter-controls { display: flex; align-items: center; gap: 10px; }
-        .btn-circle { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; }
-        .counter-val { font-size: 1rem; font-weight: bold; min-width: 60px; text-align: center; }
-
-        .btn-save { width: 100%; padding: 18px; background: var(--primary); color: #0f172a; border: none; border-radius: 15px; font-weight: 800; margin-top: 15px; }
+        .btn-save { width: 100%; padding: 18px; background: var(--primary); color: #0f172a; border: none; border-radius: 15px; font-weight: 800; margin-top: 10px; }
+        
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .summary-item { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; }
-        .summary-val { display: block; font-size: 1.3rem; font-weight: bold; color: var(--success); }
+        .summary-item { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; border-bottom: 3px solid var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header style="text-align:center; padding: 10px 0;">
-        <h1 style="margin:0; font-size: 1.5rem;">Life <span style="color:var(--primary)">Dashboard</span></h1>
+        <h1 style="margin:0; font-size: 1.5rem;">Routine <span style="color:var(--primary)">Goals</span></h1>
         <p id="display-date" style="opacity: 0.6; font-size: 0.8rem;"></p>
     </header>
 
     <div class="summary-grid">
-        <div class="summary-item"><span class="summary-val" id="stat-efficiency">0%</span><span>Produtividade</span></div>
-        <div class="summary-item"><span class="summary-val" id="stat-mood">--</span><span>Humor Médio</span></div>
-    </div>
-
-    <div class="card">
-        <h2>Foco vs Descanso (7 dias)</h2>
-        <canvas id="mainChart" style="height: 180px;"></canvas>
-    </div>
-
-    <div class="card">
-        <h2>Como foi seu dia?</h2>
-        <div class="emoji-group" id="mood-selector">
-            <button class="emoji-btn" onclick="setMood(1)">😫</button>
-            <button class="emoji-btn" onclick="setMood(2)">😐</button>
-            <button class="emoji-btn" onclick="setMood(3)">😊</button>
-            <button class="emoji-btn" onclick="setMood(4)">🚀</button>
+        <div class="summary-item">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="stat-efficiency">0%</span>
+            <div style="font-size: 0.7rem; opacity: 0.7;">Metas Batidas</div>
         </div>
-
-        <h2>Dever Cumprido?</h2>
-        <div class="toggle-group">
-            <button id="prod-sim" class="toggle-btn" onclick="setProd(true)">SIM, FOI!</button>
-            <button id="prod-nao" class="toggle-btn" onclick="setProd(false)">NÃO MUITO</button>
+        <div class="summary-item">
+            <span style="font-size: 1.2rem;" id="stat-mood">--</span>
+            <div style="font-size: 0.7rem; opacity: 0.7;">Humor Médio</div>
         </div>
     </div>
 
     <div class="card">
-        <h2>Métricas de Tempo</h2>
-        <div class="counter-row"><span>😴 Sono</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="change('sleep',-0.5)">-</button>
-                <span class="counter-val" id="v-sleep">0h</span>
-                <button class="btn-circle" onclick="change('sleep',0.5)">+</button>
-            </div>
-        </div>
-        <div class="counter-row"><span>💼 Trabalho</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="change('work',-0.5)">-</button>
-                <span class="counter-val" id="v-work">0h</span>
-                <button class="btn-circle" onclick="change('work',0.5)">+</button>
-            </div>
-        </div>
-        <div class="counter-row"><span>📖 Leitura</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="change('read',-0.25)">-</button>
-                <span class="counter-val" id="v-read">0h</span>
-                <button class="btn-circle" onclick="change('read',0.25)">+</button>
-            </div>
-        </div>
-        <div class="counter-row" style="border:none"><span>💧 Água (L)</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="change('water',-0.25)">-</button>
-                <span class="counter-val" id="v-water">0L</span>
-                <button class="btn-circle" onclick="change('water',0.25)">+</button>
+        <h2>Progresso das Metas</h2>
+        <div id="goal-bars"></div>
+    </div>
+
+    <div class="card">
+        <h2>Registro do Dia</h2>
+        <div id="controls"></div>
+        
+        <div style="margin-top:20px">
+            <h2>Como você está?</h2>
+            <div class="emoji-group" id="mood-selector">
+                <button class="emoji-btn" onclick="setMood(1)">😫</button>
+                <button class="emoji-btn" onclick="setMood(2)">😐</button>
+                <button class="emoji-btn" onclick="setMood(3)">😊</button>
+                <button class="emoji-btn" onclick="setMood(4)">🚀</button>
             </div>
         </div>
 
-        <button class="btn-save" onclick="save()">SALVAR REGISTRO</button>
+        <button class="btn-save" onclick="save()">SALVAR NO GITHUB</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('routine_v5_db')) || {};
-    const today = new Date().toISOString().split('T')[0];
-    let dayData = db[today] || { sleep: 0, work: 0, read: 0, water: 0, mood: 0, productive: null };
+    // --- 1. DEFINA SUAS METAS AQUI ---
+    const METAS = {
+        sleep: { label: "😴 Sono", goal: 8, unit: "h", step: 0.5 },
+        work:  { label: "💼 Trabalho", goal: 6, unit: "h", step: 0.5 },
+        read:  { label: "📖 Leitura", goal: 0.5, unit: "h", step: 0.25 },
+        water: { label: "💧 Água", goal: 2.5, unit: "L", step: 0.25 }
+    };
 
-    const moodEmojis = ["--", "😫", "😐", "😊", "🚀"];
+    let db = JSON.parse(localStorage.getItem('routine_v6_db')) || {};
+    const today = new Date().toISOString().split('T')[0];
+    let dayData = db[today] || { sleep: 0, work: 0, read: 0, water: 0, mood: 0 };
 
     function init() {
         document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', {dateStyle: 'full'});
+        generateInterface();
         updateUI();
-        renderChart();
     }
 
-    function change(t, a) { dayData[t] = Math.max(0, dayData[t] + a); updateUI(); }
-    
+    function generateInterface() {
+        const controls = document.getElementById('controls');
+        const goalBars = document.getElementById('goal-bars');
+        
+        Object.keys(METAS).forEach(key => {
+            const m = METAS[key];
+            // Gerar Controles
+            controls.innerHTML += `
+                <div class="counter-row">
+                    <span>${m.label}</span>
+                    <div class="counter-controls">
+                        <button class="btn-circle" onclick="change('${key}', -${m.step})">-</button>
+                        <span class="counter-val" id="v-${key}">0${m.unit}</span>
+                        <button class="btn-circle" onclick="change('${key}', ${m.step})">+</button>
+                    </div>
+                </div>`;
+            
+            // Gerar Barras de Meta
+            goalBars.innerHTML += `
+                <div class="goal-container">
+                    <div class="goal-header">
+                        <span>${m.label}</span>
+                        <span id="txt-${key}">0 / ${m.goal}${m.unit}</span>
+                    </div>
+                    <div class="goal-bar-bg">
+                        <div id="bar-${key}" class="goal-bar-fill"></div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function change(t, a) { 
+        dayData[t] = Math.max(0, dayData[t] + a); 
+        updateUI(); 
+    }
+
     function setMood(m) { dayData.mood = m; updateUI(); }
-    
-    function setProd(p) { dayData.productive = p; updateUI(); }
 
     function updateUI() {
-        document.getElementById('v-sleep').innerText = dayData.sleep + 'h';
-        document.getElementById('v-work').innerText = dayData.work + 'h';
-        document.getElementById('v-read').innerText = dayData.read + 'h';
-        document.getElementById('v-water').innerText = dayData.water.toFixed(2) + 'L';
+        let metasBatidas = 0;
+        let totalMetas = Object.keys(METAS).length;
 
-        // Atualiza botões de humor
-        document.querySelectorAll('.emoji-btn').forEach((btn, idx) => {
-            btn.classList.toggle('active', dayData.mood === idx + 1);
+        Object.keys(METAS).forEach(key => {
+            const val = dayData[key];
+            const goal = METAS[key].goal;
+            const unit = METAS[key].unit;
+
+            // Atualiza texto dos controles
+            document.getElementById(`v-${key}`).innerText = (key === 'water' ? val.toFixed(2) : val) + unit;
+            
+            // Atualiza barras e textos de meta
+            const percent = Math.min(100, (val / goal) * 100);
+            const bar = document.getElementById(`bar-${key}`);
+            bar.style.width = percent + "%";
+            bar.style.backgroundColor = percent >= 100 ? "var(--success)" : "var(--primary)";
+            
+            document.getElementById(`txt-${key}`).innerText = `${val}${unit} / ${goal}${unit}`;
+            
+            if(percent >= 100) metasBatidas++;
         });
 
-        // Atualiza botões de produtividade
-        document.getElementById('prod-sim').classList.toggle('active', dayData.productive === true);
-        document.getElementById('prod-nao').classList.toggle('active', dayData.productive === false);
+        // Atualiza Humor e Stats
+        document.querySelectorAll('.emoji-btn').forEach((btn, idx) => btn.classList.toggle('active', dayData.mood === idx+1));
+        document.getElementById('stat-efficiency').innerText = Math.round((metasBatidas/totalMetas)*100) + "%";
+        const emojis = ["--", "😫", "😐", "😊", "🚀"];
+        document.getElementById('stat-mood').innerText = emojis[dayData.mood] || "--";
     }
 
     function save() {
         db[today] = dayData;
-        localStorage.setItem('routine_v5_db', JSON.stringify(db));
-        alert("Dia registrado!"); location.reload();
+        localStorage.setItem('routine_v6_db', JSON.stringify(db));
+        alert("Progresso salvo com sucesso!");
     }
 
-    function renderChart() {
-        const last7 = Array.from({length: 7}, (_, i) => {
-            const d = new Date(); d.setDate(d.getDate() - i);
-            return d.toISOString().split('T')[0];
-        }).reverse();
-
-        const work = last7.map(d => db[d]?.work || 0);
-        const sleep = last7.map(d => db[d]?.sleep || 0);
-        const moods = last7.filter(d => db[d]?.mood).map(d => db[d].mood);
-        const prodCount = last7.filter(d => db[d]?.productive === true).length;
-
-        // Resumos
-        document.getElementById('stat-efficiency').innerText = Math.round((prodCount/7)*100) + "%";
-        const avgM = moods.length ? Math.round(moods.reduce((a,b)=>a+b,0)/moods.length) : 0;
-        document.getElementById('stat-mood').innerText = moodEmojis[avgM];
-
-        new Chart(document.getElementById('mainChart'), {
-            type: 'bar',
-            data: {
-                labels: last7.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Trabalho', data: work, backgroundColor: '#38bdf8' },
-                    { label: 'Sono', data: sleep, backgroundColor: '#818cf8' }
-                ]
-            },
-            options: { scales: { x: {stacked:true}, y: {stacked:true} }, plugins: { legend: {display: false} } }
-        });
-    }
     init();
 </script>
 </body>
