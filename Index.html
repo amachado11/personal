@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Routine Analytics Pro</title>
+    <title>Routine Performance Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -11,6 +11,7 @@
             --card: #1e293b;
             --primary: #38bdf8;
             --success: #4ade80;
+            --warning: #fbbf24;
             --text: #f8fafc;
             --accent: #818cf8;
         }
@@ -33,35 +34,30 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
-        h2 { font-size: 1rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 0.9rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Contadores Quantitativos */
+        /* Contadores */
         .counter-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #334155;
         }
 
-        .counter-controls { display: flex; align-items: center; gap: 15px; }
+        .counter-controls { display: flex; align-items: center; gap: 12px; }
 
         .btn-circle {
-            width: 35px; height: 35px;
+            width: 32px; height: 32px;
             border-radius: 50%;
             border: 2px solid var(--primary);
             background: transparent;
             color: var(--primary);
-            font-size: 1.2rem;
             font-weight: bold;
             display: flex; align-items: center; justify-content: center;
         }
 
-        .counter-val { font-size: 1.2rem; font-weight: bold; min-width: 60px; text-align: center; }
-
-        /* Progress Bar Água */
-        .water-bar-bg { width: 100%; height: 8px; background: #334155; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-        #water-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.5s; }
+        .counter-val { font-size: 1.1rem; font-weight: bold; min-width: 70px; text-align: center; }
 
         .btn-save {
             width: 100%; padding: 18px;
@@ -71,72 +67,78 @@
             margin-top: 10px; cursor: pointer;
         }
 
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .summary-item { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; }
-        .summary-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--success); }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .summary-item { background: var(--card); padding: 12px 5px; border-radius: 12px; text-align: center; }
+        .summary-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--success); }
+        .summary-label { font-size: 0.7rem; opacity: 0.7; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="text-align:center; padding: 15px 0;">
-        <h1 style="margin:0; font-size: 1.6rem;">Data <span style="color:var(--primary)">Routine</span></h1>
+    <header style="text-align:center; padding: 10px 0;">
+        <h1 style="margin:0; font-size: 1.5rem;">Performance <span style="color:var(--primary)">Tracker</span></h1>
         <p id="display-date" style="opacity: 0.6; font-size: 0.8rem;"></p>
     </header>
 
     <div class="summary-grid">
-        <div class="summary-item"><span class="summary-val" id="stat-water">0L</span><span>Água Total</span></div>
-        <div class="summary-item"><span class="summary-val" id="stat-cardio">0m</span><span>Cardio Total</span></div>
+        <div class="summary-item"><span class="summary-val" id="total-work">0h</span><span class="summary-label">Trabalho</span></div>
+        <div class="summary-item"><span class="summary-val" id="avg-sleep">0h</span><span class="summary-label">Média Sono</span></div>
+        <div class="summary-item"><span class="summary-val" id="total-read">0h</span><span class="summary-label">Leitura</span></div>
     </div>
 
     <div class="card">
-        <h2>Volume de Cardio (Minutos)</h2>
-        <canvas id="lineChart" style="height: 180px;"></canvas>
+        <h2>Distribuição de Horas (Últimos 7 dias)</h2>
+        <canvas id="timeChart" style="height: 200px;"></canvas>
     </div>
 
     <div class="card">
-        <h2>Entradas de Hoje</h2>
+        <h2>Registro do Dia</h2>
         
         <div class="counter-row">
-            <div>
-                <span>💧 Hidratação</span>
-                <div class="water-bar-bg"><div id="water-fill"></div></div>
+            <span>😴 Sono (horas)</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="changeVal('sleep', -0.5)">-</button>
+                <span class="counter-val" id="val-sleep">0h</span>
+                <button class="btn-circle" onclick="changeVal('sleep', 0.5)">+</button>
             </div>
+        </div>
+
+        <div class="counter-row">
+            <span>💼 Trabalho (horas)</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="changeVal('work', -0.5)">-</button>
+                <span class="counter-val" id="val-work">0h</span>
+                <button class="btn-circle" onclick="changeVal('work', 0.5)">+</button>
+            </div>
+        </div>
+
+        <div class="counter-row">
+            <span>📖 Leitura (horas)</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="changeVal('read', -0.25)">-</button>
+                <span class="counter-val" id="val-read">0h</span>
+                <button class="btn-circle" onclick="changeVal('read', 0.25)">+</button>
+            </div>
+        </div>
+
+        <div class="counter-row">
+            <span>💧 Água (L)</span>
             <div class="counter-controls">
                 <button class="btn-circle" onclick="changeVal('water', -0.25)">-</button>
-                <span class="counter-val" id="val-water">0.0L</span>
+                <span class="counter-val" id="val-water">0L</span>
                 <button class="btn-circle" onclick="changeVal('water', 0.25)">+</button>
             </div>
         </div>
 
-        <div class="counter-row">
-            <span>🏃 Cardio (min)</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('cardio', -5)">-</button>
-                <span class="counter-val" id="val-cardio">0</span>
-                <button class="btn-circle" onclick="changeVal('cardio', 5)">+</button>
-            </div>
-        </div>
-
-        <div class="counter-row" style="border:none">
-            <span>🥗 Refeições Limpas</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('diet', -1)">-</button>
-                <span class="counter-val" id="val-diet">0</span>
-                <button class="btn-circle" onclick="changeVal('diet', 1)">+</button>
-            </div>
-        </div>
-
-        <button class="btn-save" onclick="saveToday()">SALVAR REGISTRO</button>
+        <button class="btn-save" onclick="saveToday()">SALVAR NO GITHUB</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('routine_v3_db')) || {};
+    let db = JSON.parse(localStorage.getItem('routine_v4_db')) || {};
     const today = new Date().toISOString().split('T')[0];
-    
-    // Estado temporário do dia
-    let currentDay = db[today] || { water: 0, cardio: 0, diet: 0 };
+    let currentDay = db[today] || { sleep: 0, work: 0, read: 0, water: 0 };
 
     function init() {
         document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', {dateStyle: 'full'});
@@ -150,20 +152,17 @@
     }
 
     function updateUI() {
+        document.getElementById('val-sleep').innerText = currentDay.sleep + 'h';
+        document.getElementById('val-work').innerText = currentDay.work + 'h';
+        document.getElementById('val-read').innerText = currentDay.read + 'h';
         document.getElementById('val-water').innerText = currentDay.water.toFixed(2) + 'L';
-        document.getElementById('val-cardio').innerText = currentDay.cardio;
-        document.getElementById('val-diet').innerText = currentDay.diet;
-        
-        // Barra de água (meta 2L)
-        const percent = Math.min(100, (currentDay.water / 2) * 100);
-        document.getElementById('water-fill').style.width = percent + '%';
     }
 
     function saveToday() {
         db[today] = currentDay;
-        localStorage.setItem('routine_v3_db', JSON.stringify(db));
-        alert("Dados salvos no Moto G34!");
-        location.reload(); // Recarrega para atualizar gráficos
+        localStorage.setItem('routine_v4_db', JSON.stringify(db));
+        alert("Dados salvos!");
+        location.reload();
     }
 
     function renderChart() {
@@ -173,29 +172,33 @@
             return d.toISOString().split('T')[0];
         }).reverse();
 
-        const cardioData = last7Days.map(date => db[date]?.cardio || 0);
-        const waterData = last7Days.map(date => db[date]?.water || 0);
+        const workData = last7Days.map(d => db[d]?.work || 0);
+        const sleepData = last7Days.map(d => db[d]?.sleep || 0);
+        const readData = last7Days.map(d => db[d]?.read || 0);
 
-        // Totais para o resumo
-        document.getElementById('stat-water').innerText = waterData.reduce((a,b)=>a+b, 0).toFixed(1) + 'L';
-        document.getElementById('stat-cardio').innerText = cardioData.reduce((a,b)=>a+b, 0) + 'm';
+        // Totais e Médias
+        document.getElementById('total-work').innerText = workData.reduce((a,b)=>a+b, 0) + 'h';
+        const avgSleep = (sleepData.reduce((a,b)=>a+b, 0) / 7).toFixed(1);
+        document.getElementById('avg-sleep').innerText = avgSleep + 'h';
+        document.getElementById('total-read').innerText = readData.reduce((a,b)=>a+b, 0) + 'h';
 
-        new Chart(document.getElementById('lineChart'), {
-            type: 'line',
+        new Chart(document.getElementById('timeChart'), {
+            type: 'bar',
             data: {
                 labels: last7Days.map(d => d.split('-')[2]),
-                datasets: [{
-                    label: 'Minutos Cardio',
-                    data: cardioData,
-                    borderColor: '#38bdf8',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(56, 189, 248, 0.1)'
-                }]
+                datasets: [
+                    { label: 'Trabalho', data: workData, backgroundColor: '#38bdf8' },
+                    { label: 'Sono', data: sleepData, backgroundColor: '#818cf8' },
+                    { label: 'Leitura', data: readData, backgroundColor: '#4ade80' }
+                ]
             },
-            options: { 
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, grid: { color: '#334155' } } }
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, beginAtZero: true, grid: { color: '#334155' } }
+                },
+                plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } } }
             }
         });
     }
