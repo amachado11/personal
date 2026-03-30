@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Dashboard v7 - Gestão de Tempo</title>
+    <title>Life Dashboard v8 - Progress Rings</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #0b1121;
-            --card: rgba(30, 41, 59, 0.7);
+            --card: rgba(30, 41, 59, 0.6);
             --primary: #38bdf8;
             --success: #4ade80;
             --text: #f8fafc;
             --accent: #818cf8;
             --danger: #ef4444;
+            --warning: #fbbf24;
         }
 
         body {
@@ -27,49 +28,78 @@
 
         .container { width: 100%; max-width: 450px; }
 
+        h1 { margin: 10px 0 5px 0; font-size: 1.6rem; text-align: center; }
+        h2 { font-size: 0.9rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+
         .card {
             background: var(--card);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Seção de Anéis de Progresso (NOVO CENTRAL) */
+        .rings-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .ring-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+        }
+
+        .ring-canvas { width: 100px; height: 100px; }
+
+        .ring-info {
+            position: absolute; text-align: center;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; /* Garante alinhamento */
+        }
+
+        .ring-icon { font-size: 1.6rem; display: block; margin-bottom: 2px; }
+        .ring-label { font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; }
+        .ring-pct { font-size: 1rem; font-weight: 800; color: var(--text); }
+
+        /* Controles Agrupados (NOVO DESIGN) */
+        .controls-card { padding: 10px; }
+
+        .counter-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; margin-bottom: 10px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 16px;
+        }
+
+        .counter-label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1rem; }
+        
+        .control-group {
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 3px 6px;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        h1 { margin: 10px 0; font-size: 1.8rem; text-align: center; }
-        h2 { font-size: 0.9rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Resumo */
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .summary-item { background: var(--card); padding: 12px 5px; border-radius: 12px; text-align: center; }
-        .summary-val { display: block; font-size: 1.4rem; font-weight: bold; color: var(--success); }
-        .summary-label { font-size: 0.7rem; opacity: 0.7; }
-
-        /* Contadores Táteis com Botões +/- */
-        .counter-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .counter-label { display: flex; align-items: center; gap: 10px; font-weight: 500; }
-        .counter-controls { display: flex; align-items: center; gap: 10px; }
-
-        .btn-circle {
-            width: 32px; height: 32px;
+        .btn-action {
+            width: 34px; height: 34px;
             border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: transparent;
-            color: var(--primary);
-            font-weight: bold; font-size: 1.1rem;
+            border: none;
+            background: var(--primary);
+            color: #0b1121;
+            font-weight: 800; font-size: 1.2rem;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
         }
 
-        .counter-val { font-size: 1.2rem; font-weight: bold; min-width: 70px; text-align: center; color: var(--text); }
+        .btn-action.minus { background: #334155; color: var(--text); }
+
+        .counter-val { font-size: 1.1rem; font-weight: 800; min-width: 55px; text-align: center; color: var(--text); }
 
         /* Botão Salvar Principal */
         .btn-main {
@@ -77,19 +107,14 @@
             background: var(--primary);
             color: #0b1121;
             border: none;
-            border-radius: 15px;
-            font-weight: 800; font-size: 1rem;
+            border-radius: 18px;
+            font-weight: 900; font-size: 1.1rem;
             margin-top: 15px; cursor: pointer;
-            box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.3);
+            box-shadow: 0 6px 16px 0 rgba(56, 189, 248, 0.4);
+            transition: 0.2s;
         }
 
-        /* Seção Oculta de Metas */
-        #settings-panel { display: none; margin-top: 10px; }
-        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-        .setting-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 8px; border-radius: 8px; width: 60px; text-align: center; font-size: 1rem; }
-        .btn-settings { font-size: 1.3rem; background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.7; color: var(--text); }
-
-        canvas { max-width: 100%; margin-top: 10px; }
+        .btn-main:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
@@ -98,75 +123,96 @@
     <header style="text-align:center;">
         <h1>Life <span style="color:var(--primary)">Dashboard</span></h1>
         <p id="current-date" style="opacity: 0.6; font-size: 0.8rem;"></p>
-        <button class="btn-settings" onclick="toggleSettings()">⚙️</button>
     </header>
 
-    <div class="summary-grid">
-        <div class="summary-item"><span class="summary-val" id="total-read">0h</span><span class="summary-label">Leitura Meta: <span id="meta-read-txt">--h</span></span></div>
-        <div class="summary-item"><span class="summary-val" id="total-water">0L</span><span class="summary-label">Água Meta: <span id="meta-water-txt">--L</span></span></div>
-        <div class="summary-item"><span class="summary-val" id="total-leisure">0h</span><span class="summary-label">Lazer Meta: <span id="meta-leisure-txt">--h</span></span></div>
+    <div class="card" style="text-align:center">
+        <h2>Metas Batidas (Mês Atual)</h2>
+        <div style="display:flex; justify-content:space-around">
+            <div style="text-align:center"><span style="display:block; font-size:1.8rem; font-weight:bold; color:var(--success)" id="meta-volume-txt">0%</span><span>Eficiência</span></div>
+            <div style="text-align:center"><span style="display:block; font-size:1.8rem; font-weight:bold; color:var(--primary)" id="water-volume-txt">0L</span><span>Água Total</span></div>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>Equilíbrio Diário (Últimos 7 dias)</h2>
-        <canvas id="stackedTimeChart" style="height: 200px;"></canvas>
+    <div class="rings-container">
+        <div class="ring-item">
+            <canvas id="ring-sleep" class="ring-canvas"></canvas>
+            <div class="ring-info">
+                <span class="ring-icon">😴</span>
+                <span class="ring-pct" id="pct-sleep">0%</span>
+                <span class="ring-label">Sono</span>
+            </div>
+        </div>
+        <div class="ring-item">
+            <canvas id="ring-work" class="ring-canvas"></canvas>
+            <div class="ring-info">
+                <span class="ring-icon">💼</span>
+                <span class="ring-pct" id="pct-work">0%</span>
+                <span class="ring-label">Trabalho</span>
+            </div>
+        </div>
+        <div class="ring-item">
+            <canvas id="ring-leisure" class="ring-canvas"></canvas>
+            <div class="ring-info">
+                <span class="ring-icon">🥳</span>
+                <span class="ring-pct" id="pct-leisure">0%</span>
+                <span class="ring-label">Lazer</span>
+            </div>
+        </div>
+        <div class="ring-item">
+            <canvas id="ring-water" class="ring-canvas"></canvas>
+            <div class="ring-info">
+                <span class="ring-icon">💧</span>
+                <span class="ring-pct" id="pct-water">0%</span>
+                <span class="ring-label">Água</span>
+            </div>
+        </div>
     </div>
 
-    <div id="settings-panel" class="card">
-        <h2>Defina Suas Metas Diárias</h2>
-        <div class="settings-row"><span>😴 Sono Meta (h)</span><input type="number" step="0.5" id="meta-sleep" class="setting-input"></div>
-        <div class="settings-row"><span>💼 Trabalho Meta (h)</span><input type="number" step="0.5" id="meta-work" class="setting-input"></div>
-        <div class="settings-row"><span>📖 Leitura Meta (h)</span><input type="number" step="0.25" id="meta-read" class="setting-input"></div>
-        <div class="settings-row"><span>💧 Água Meta (L)</span><input type="number" step="0.25" id="meta-water" class="setting-input"></div>
-        <div class="settings-row"><span>🥳 Lazer Meta (h)</span><input type="number" step="0.5" id="meta-leisure" class="setting-input"></div>
-        <button class="btn-main" style="background:var(--success)" onclick="saveSettings()">Salvar Metas</button>
-    </div>
-
-    <div class="card">
+    <div class="card controls-card">
         <h2>Registro de Hoje</h2>
         
         <div class="counter-row">
             <span class="counter-label">😴 Sono</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('sleep', -0.5)">-</button>
+            <div class="control-group">
+                <button class="btn-action minus" onclick="changeVal('sleep', -0.5)">-</button>
                 <span class="counter-val" id="val-sleep">0h</span>
-                <button class="btn-circle" onclick="changeVal('sleep', 0.5)">+</button>
+                <button class="btn-action" onclick="changeVal('sleep', 0.5)">+</button>
             </div>
         </div>
 
         <div class="counter-row">
             <span class="counter-label">💼 Trabalho</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('work', -0.5)">-</button>
+            <div class="control-group">
+                <button class="btn-action minus" onclick="changeVal('work', -0.5)">-</button>
                 <span class="counter-val" id="val-work">0h</span>
-                <button class="btn-circle" onclick="changeVal('work', 0.5)">+</button>
+                <button class="btn-action" onclick="changeVal('work', 0.5)">+</button>
             </div>
         </div>
 
         <div class="counter-row">
             <span class="counter-label">🥳 Lazer</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('leisure', -0.5)">-</button>
+            <div class="control-group">
+                <button class="btn-action minus" onclick="changeVal('leisure', -0.5)">-</button>
                 <span class="counter-val" id="val-leisure">0h</span>
-                <button class="btn-circle" onclick="changeVal('leisure', 0.5)">+</button>
+                <button class="btn-action" onclick="changeVal('leisure', 0.5)">+</button>
             </div>
         </div>
 
         <div class="counter-row">
             <span class="counter-label">📖 Leitura</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('read', -0.25)">-</button>
+            <div class="control-group">
+                <button class="btn-action minus" onclick="changeVal('read', -0.25)">-</button>
                 <span class="counter-val" id="val-read">0h</span>
-                <button class="btn-circle" onclick="changeVal('read', 0.25)">+</button>
+                <button class="btn-action" onclick="changeVal('read', 0.25)">+</button>
             </div>
         </div>
 
-        <div class="counter-row" style="border:none">
+        <div class="counter-row" style="margin-bottom:0">
             <span class="counter-label">💧 Água</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('water', -0.25)">-</button>
+            <div class="control-group">
+                <button class="btn-action minus" onclick="changeVal('water', -0.25)">-</button>
                 <span class="counter-val" id="val-water">0L</span>
-                <button class="btn-circle" onclick="changeVal('water', 0.25)">+</button>
+                <button class="btn-action" onclick="changeVal('water', 0.25)">+</button>
             </div>
         </div>
 
@@ -175,43 +221,22 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('life_db_v7')) || {};
-    // Metas Padrão (usuário pode editar)
-    let goals = JSON.parse(localStorage.getItem('life_goals')) || { sleep: 8, work: 8, read: 0.5, water: 2.5, leisure: 2 };
-    
+    let db = JSON.parse(localStorage.getItem('life_db_v8')) || {};
+    // Metas Diárias (usuário pode editar no JS por enquanto)
+    let goals = { sleep: 8, work: 8, read: 0.5, water: 2.5, leisure: 2 };
     const today = new Date().toISOString().split('T')[0];
     let dayData = db[today] || { sleep: 0, work: 0, read: 0, water: 0, leisure: 0 };
+    
+    // Armazenamento dos gráficos de anel
+    const rings = {};
 
     function init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', {weekday: 'long', day: 'numeric', month: 'long'});
-        loadSettingsInputs();
+        initRings();
         updateUI();
-        renderChart();
     }
 
-    // Gerenciar Metas (Settings)
-    function toggleSettings() {
-        const panel = document.getElementById('settings-panel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function loadSettingsInputs() {
-        Object.keys(goals).forEach(key => {
-            document.getElementById(`meta-${key}`).value = goals[key];
-        });
-    }
-
-    function saveSettings() {
-        Object.keys(goals).forEach(key => {
-            goals[key] = parseFloat(document.getElementById(`meta-${key}`).value) || 0;
-        });
-        localStorage.setItem('life_goals', JSON.stringify(goals));
-        alert("Metas atualizadas com sucesso!");
-        toggleSettings();
-        updateUI(); // Atualiza os textos de meta no resumo
-    }
-
-    // Lógica de Contadores
+    // Gerenciar Contadores
     function changeVal(type, amount) {
         dayData[type] = Math.max(0, dayData[type] + amount);
         updateUI();
@@ -225,59 +250,83 @@
         document.getElementById('val-water').innerText = dayData.water.toFixed(2) + 'L';
         document.getElementById('val-leisure').innerText = dayData.leisure + 'h';
 
-        // Atualizar resumos com metas atuais
-        document.getElementById('meta-read-txt').innerText = goals.read + 'h';
-        document.getElementById('meta-water-txt').innerText = goals.water + 'L';
-        document.getElementById('meta-leisure-txt').innerText = goals.leisure + 'h';
+        // Atualizar Anéis e Porcentagens de Meta
+        updateRing('sleep', goals.sleep, '#818cf8');
+        updateRing('work', goals.work, '#38bdf8');
+        updateRing('leisure', goals.leisure, '#4ade80');
+        updateRing('water', goals.water, '#fbbf24');
+
+        // Resumo Mensal Simples (NOVO)
+        const entries = Object.values(db);
+        if (entries.length > 0) {
+            const currentWater = entries.reduce((a,b)=>a+(b.water||0), 0);
+            document.getElementById('water-volume-txt').innerText = currentWater.toFixed(1) + 'L';
+            // Eficiência de Metas Batidas (Média simples)
+            let goalsMet = 0;
+            entries.forEach(d => {
+                if((d.sleep||0)>=goals.sleep) goalsMet++;
+                if((d.work||0)>=goals.work) goalsMet++;
+                if((d.water||0)>=goals.water) goalsMet++;
+            });
+            const ef = ((goalsMet / (entries.length * 3)) * 100).toFixed(0);
+            document.getElementById('meta-volume-txt').innerText = ef + '%';
+        }
     }
 
     function saveToday() {
         db[today] = dayData;
-        localStorage.setItem('life_db_v7', JSON.stringify(db));
-        alert("Dados salvos e prontos para o GitHub!");
-        location.reload(); // Recarrega para atualizar gráficos
+        localStorage.setItem('life_db_v8', JSON.stringify(db));
+        alert("Dia registrado no Moto G34!");
+        location.reload();
     }
 
-    function renderChart() {
-        const last7Days = Array.from({length: 7}, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            return d.toISOString().split('T')[0];
-        }).reverse();
+    // Configuração e Atualização dos Anéis de Progresso
+    function initRings() {
+        rings.sleep = createRing('ring-sleep', '#818cf8');
+        rings.work = createRing('ring-work', '#38bdf8');
+        rings.leisure = createRing('ring-leisure', '#4ade80');
+        rings.water = createRing('ring-water', '#fbbf24');
+    }
 
-        const workData = last7Days.map(d => db[d]?.work || 0);
-        const sleepData = last7Days.map(d => db[d]?.sleep || 0);
-        const readData = last7Days.map(d => db[d]?.read || 0);
-        const waterData = last7Days.map(d => db[d]?.water || 0);
-        const leisureData = last7Days.map(d => db[d]?.leisure || 0);
-
-        // Atualizar Resumo Quantitativo no Topo
-        document.getElementById('total-read').innerText = readData.reduce((a,b)=>a+b, 0) + 'h';
-        document.getElementById('total-water').innerText = waterData.reduce((a,b)=>a+b, 0).toFixed(1) + 'L';
-        document.getElementById('total-leisure').innerText = leisureData.reduce((a,b)=>a+b, 0) + 'h';
-
-        // Gráfico de Barras Empilhadas
-        const ctx = document.getElementById('stackedTimeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
+    function createRing(canvasId, color) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+            type: 'doughnut',
             data: {
-                labels: last7Days.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Trabalho', data: workData, backgroundColor: '#38bdf8' },
-                    { label: 'Sono', data: sleepData, backgroundColor: '#818cf8' },
-                    { label: 'Lazer', data: leisureData, backgroundColor: '#4ade80' },
-                    { label: 'Leitura', data: readData, backgroundColor: '#fbbf24' }
-                ]
+                datasets: [{
+                    data: [0, 100], // Inicial: [Feito, Restante]
+                    backgroundColor: [color, '#1a1f32'], // Cor do Progresso, Cor do Fundo
+                    borderWidth: 0,
+                    circumference: 360,
+                    rotation: 270, // Começa no topo
+                }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    x: { stacked: true, grid: { display: false } },
-                    y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }
-                },
-                plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12, padding: 10 } } }
+                cutout: '80%', // Deixa o anel mais fino
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
             }
         });
+    }
+
+    function updateRing(key, goal, color) {
+        const val = dayData[key] || 0;
+        const percent = Math.min(100, (val / goal) * 100);
+        const remaining = Math.max(0, 100 - percent);
+
+        rings[key].data.datasets[0].data = [percent, remaining];
+        // Se a meta foi batida, muda a cor do fundo para sucesso
+        rings[key].data.datasets[0].backgroundColor[1] = percent >= 100 ? '#4ade8055' : '#1a1f32';
+        rings[key].update('none'); // Atualiza sem animação para melhor performance
+
+        // Atualiza texto da porcentagem no centro
+        document.getElementById(`pct-${key}`).innerText = percent.toFixed(0) + "%";
+        if(percent >= 100) {
+            document.getElementById(`pct-${key}`).style.color = 'var(--success)';
+        } else {
+            document.getElementById(`pct-${key}`).style.color = 'var(--text)';
+        }
     }
 
     init();
