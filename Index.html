@@ -3,106 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Life Dashboard v9</title>
+    <title>Life Dashboard v9.2 - High Contrast</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #0f172a;
+            --bg: #0b1121;
             --card: #1e293b;
-            --primary: #38bdf8;
-            --success: #4ade80;
-            --danger: #f87171;
-            --text: #f8fafc;
-            --nav-bg: #1e293b;
+            --primary: #00d2ff; /* Ciano Vibrante */
+            --success: #39ff14; /* Verde Neon */
+            --warning: #ffcc00; /* Amarelo */
+            --danger: #ff3131;  /* Vermelho */
+            --text: #ffffff;
+            --meta: rgba(255, 255, 255, 0.2); /* Meta agora é um branco suave */
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0; padding: 0;
-            padding-bottom: 80px; /* Espaço para a barra inferior */
-        }
-
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
         .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        h2 { font-size: 0.9rem; color: var(--primary); text-transform: uppercase; margin-bottom: 15px; }
 
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        h2 { font-size: 1.1rem; margin-top: 0; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-
-        /* Controles de Lançamento */
-        .row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .btn-group { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 30px; }
-        .btn-act { width: 35px; height: 35px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+        /* Controles */
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-group { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 25px; }
+        .btn-act { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; }
         .btn-act.minus { background: #475569; color: white; }
-        .val-display { min-width: 50px; text-align: center; font-weight: 800; }
+        .val-display { min-width: 55px; text-align: center; font-weight: bold; font-size: 1.1rem; }
 
-        /* Humor e Dever Cumprido */
-        .emoji-selector { display: flex; justify-content: space-around; font-size: 1.8rem; padding: 10px 0; }
-        .emoji-item { cursor: pointer; opacity: 0.3; transition: 0.2s; }
-        .emoji-item.selected { opacity: 1; transform: scale(1.3); }
+        /* Humor e Produtividade (3 Níveis) */
+        .emoji-selector { display: flex; justify-content: space-around; font-size: 1.8rem; margin: 10px 0; }
+        .emoji-item { cursor: pointer; filter: grayscale(1); opacity: 0.4; transition: 0.3s; }
+        .emoji-item.selected { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
 
-        .toggle-btn {
-            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #475569;
-            background: transparent; color: white; font-weight: bold; cursor: pointer;
-        }
-        .toggle-btn.active { background: var(--success); border-color: var(--success); color: #000; }
+        .status-group { display: flex; gap: 8px; }
+        .status-btn { flex: 1; padding: 12px 5px; border-radius: 12px; border: 1px solid #475569; background: transparent; color: white; font-size: 0.7rem; font-weight: bold; }
+        .status-btn.active-sim { background: var(--success); color: #000; border-color: var(--success); }
+        .status-btn.active-mais { background: var(--warning); color: #000; border-color: var(--warning); }
+        .status-btn.active-nao { background: var(--danger); color: #000; border-color: var(--danger); }
 
-        /* Navegação Inferior */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: var(--nav-bg); display: flex; justify-content: space-around;
-            align-items: center; border-top: 1px solid rgba(255,255,255,0.1);
-            z-index: 1000;
-        }
-        .nav-item { text-align: center; color: #94a3b8; font-size: 0.7rem; text-decoration: none; cursor: pointer; flex: 1; }
+        /* Heatmap Real */
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .heat-day { height: 25px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+
+        /* Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #1a2236; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { text-align: center; color: #64748b; font-size: 0.7rem; flex: 1; }
         .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 1.4rem; display: block; }
 
-        /* Configurações (Modal) */
-        #modal-goals {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: none; z-index: 2000;
-            justify-content: center; align-items: center;
-        }
-        .modal-content { background: var(--card); width: 85%; padding: 25px; border-radius: 20px; }
-
-        .btn-save { width: 100%; padding: 18px; border-radius: 15px; background: var(--primary); border: none; font-weight: 900; margin-top: 10px; cursor: pointer; }
+        .btn-save { width: 100%; padding: 18px; border-radius: 15px; background: var(--primary); border: none; font-weight: 900; margin-top: 15px; }
+        #modal-goals { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2000; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
     <div id="page-action" class="page active-page">
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-            <h1 style="margin:0; font-size:1.5rem">Hoje</h1>
-            <button onclick="toggleModal(true)" style="background:none; border:none; font-size:1.5rem; cursor:pointer">⚙️</button>
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+            <h1 style="margin:0; font-size:1.4rem">Registro Diário</h1>
+            <button onclick="toggleModal(true)" style="background:none; border:none; font-size:1.4rem">⚙️</button>
         </header>
 
         <div class="card">
-            <h2>Como está seu Humor?</h2>
-            <div class="emoji-selector" id="humor-selector">
+            <h2>Como foi o Humor?</h2>
+            <div class="emoji-selector">
                 <span class="emoji-item" onclick="setHumor(1)">😫</span>
                 <span class="emoji-item" onclick="setHumor(2)">😕</span>
-                <span class="emoji-item" id="default-emoji" onclick="setHumor(3)">😐</span>
+                <span class="emoji-item" onclick="setHumor(3)">😐</span>
                 <span class="emoji-item" onclick="setHumor(4)">🙂</span>
                 <span class="emoji-item" onclick="setHumor(5)">🤩</span>
             </div>
         </div>
 
         <div class="card">
-            <h2>Lançamentos</h2>
+            <h2>Métricas</h2>
             <div class="row"><span>😴 Sono</span><div class="btn-group"><button class="btn-act minus" onclick="change('sleep',-0.5)">-</button><span class="val-display" id="v-sleep">0h</span><button class="btn-act" onclick="change('sleep',0.5)">+</button></div></div>
             <div class="row"><span>💼 Trabalho</span><div class="btn-group"><button class="btn-act minus" onclick="change('work',-0.5)">-</button><span class="val-display" id="v-work">0h</span><button class="btn-act" onclick="change('work',0.5)">+</button></div></div>
             <div class="row"><span>💧 Água</span><div class="btn-group"><button class="btn-act minus" onclick="change('water',-0.25)">-</button><span class="val-display" id="v-water">0L</span><button class="btn-act" onclick="change('water',0.25)">+</button></div></div>
@@ -111,73 +85,54 @@
 
         <div class="card">
             <h2>Dever Cumprido?</h2>
-            <button id="btn-done" class="toggle-btn" onclick="toggleDone()">MARCAR COMO CONCLUÍDO ✅</button>
+            <div class="status-group">
+                <button id="s-2" class="status-btn" onclick="setStatus(2)">✅ SIM</button>
+                <button id="s-1" class="status-btn" onclick="setStatus(1)">⚠️ +/-</button>
+                <button id="s-0" class="status-btn" onclick="setStatus(0)">❌ NÃO</button>
+            </div>
         </div>
 
-        <button class="btn-save" onclick="saveData()">SALVAR REGISTRO</button>
+        <button class="btn-save" onclick="saveData()">SALVAR NO GITHUB</button>
     </div>
 
     <div id="page-stats" class="page">
         <h1>Dashboard</h1>
-        
-        <div class="card">
-            <h2>Meta vs. Realizado (Hoje)</h2>
-            <canvas id="chart-compare"></canvas>
-        </div>
-
-        <div class="card">
-            <h2>Humor vs. Sono (Semana)</h2>
-            <canvas id="chart-line"></canvas>
-        </div>
-
-        <div class="card">
-            <h2>Consistência (Mensal)</h2>
-            <div id="heatmap" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:5px"></div>
-            <p style="font-size:0.7rem; margin-top:10px; opacity:0.6">* Intensidade do verde baseada em metas batidas.</p>
-        </div>
+        <div class="card"><h2>Meta x Realizado (Contraste)</h2><canvas id="chart-compare"></canvas></div>
+        <div class="card"><h2>Humor & Produtividade</h2><canvas id="chart-line"></canvas></div>
+        <div class="card"><h2>Consistência (Últimos 28 dias)</h2><div id="heatmap" class="heatmap-grid"></div></div>
     </div>
 
     <div id="modal-goals">
-        <div class="modal-content">
-            <h2>Configurar Metas</h2>
+        <div class="card" style="width:80%">
+            <h2>Ajustar Metas</h2>
             <div class="row"><span>Sono (h)</span><input type="number" id="g-sleep" step="0.5" style="width:50px"></div>
-            <div class="row"><span>Trabalho (h)</span><input type="number" id="g-work" step="0.5" style="width:50px"></div>
+            <div class="row"><span>Trab (h)</span><input type="number" id="g-work" step="0.5" style="width:50px"></div>
             <div class="row"><span>Água (L)</span><input type="number" id="g-water" step="0.1" style="width:50px"></div>
-            <button class="btn-save" onclick="saveGoals()">FECHAR E SALVAR</button>
+            <button class="btn-save" onclick="saveGoals()">SALVAR</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" id="nav-action" onclick="showPage('action')">
-            <span class="nav-icon">✍️</span>Registro
-        </div>
-        <div class="nav-item" id="nav-stats" onclick="showPage('stats')">
-            <span class="nav-icon">📊</span>Insights
-        </div>
+        <div class="nav-item active" id="nav-action" onclick="showPage('action')"><span>✍️</span><br>Lançar</div>
+        <div class="nav-item" id="nav-stats" onclick="showPage('stats')"><span>📊</span><br>Insights</div>
     </nav>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('life_v9_db')) || {};
-    let goals = JSON.parse(localStorage.getItem('life_v9_goals')) || { sleep: 8, work: 8, water: 2.5, read: 0.5 };
+    let db = JSON.parse(localStorage.getItem('life_v9_2_db')) || {};
+    let goals = JSON.parse(localStorage.getItem('life_v9_2_goals')) || { sleep: 8, work: 8, water: 2.5, read: 0.5 };
     const today = new Date().toISOString().split('T')[0];
-    let dayData = db[today] || { sleep: 0, work: 0, water: 0, read: 0, humor: 3, done: false };
+    let dayData = db[today] || { sleep: 0, work: 0, water: 0, read: 0, humor: 3, status: 1 };
 
-    // Navegação
-    function showPage(page) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('page-' + page).classList.add('active-page');
-        document.getElementById('nav-' + page).classList.add('active');
-        if(page === 'stats') renderCharts();
+    function showPage(p) {
+        document.querySelectorAll('.page, .nav-item').forEach(el => el.classList.remove('active-page', 'active'));
+        document.getElementById('page-'+p).classList.add('active-page');
+        document.getElementById('nav-'+p).classList.add('active');
+        if(p === 'stats') renderCharts();
     }
 
-    // Lógica de Registro
     function change(t, a) { dayData[t] = Math.max(0, dayData[t] + a); updateUI(); }
-    function setHumor(val) { 
-        dayData.humor = val; 
-        document.querySelectorAll('.emoji-item').forEach((e, i) => e.classList.toggle('selected', i+1 === val));
-    }
-    function toggleDone() { dayData.done = !dayData.done; updateUI(); }
+    function setHumor(v) { dayData.humor = v; updateUI(); }
+    function setStatus(v) { dayData.status = v; updateUI(); }
 
     function updateUI() {
         document.getElementById('v-sleep').innerText = dayData.sleep + 'h';
@@ -185,81 +140,68 @@
         document.getElementById('v-water').innerText = dayData.water.toFixed(2) + 'L';
         document.getElementById('v-read').innerText = dayData.read + 'h';
         
-        const btnDone = document.getElementById('btn-done');
-        btnDone.classList.toggle('active', dayData.done);
-        btnDone.innerText = dayData.done ? "DIA CONCLUÍDO! 🔥" : "MARCAR COMO CONCLUÍDO ✅";
-        setHumor(dayData.humor);
+        document.querySelectorAll('.emoji-item').forEach((e, i) => e.classList.toggle('selected', i+1 === dayData.humor));
+        document.querySelectorAll('.status-btn').forEach(b => b.className = 'status-btn');
+        const s = dayData.status;
+        document.getElementById('s-'+s).classList.add(s===2?'active-sim':s===1?'active-mais':'active-nao');
     }
 
-    function saveData() {
-        db[today] = dayData;
-        localStorage.setItem('life_v9_db', JSON.stringify(db));
-        alert("Salvo com sucesso!");
-    }
+    function saveData() { db[today] = dayData; localStorage.setItem('life_v9_2_db', JSON.stringify(db)); alert("Registrado!"); }
 
-    // Modal Metas
-    function toggleModal(show) { 
-        document.getElementById('modal-goals').style.display = show ? 'flex' : 'none';
-        if(show) {
-            document.getElementById('g-sleep').value = goals.sleep;
-            document.getElementById('g-work').value = goals.work;
-            document.getElementById('g-water').value = goals.water;
-        }
-    }
-    function saveGoals() {
-        goals.sleep = parseFloat(document.getElementById('g-sleep').value);
-        goals.work = parseFloat(document.getElementById('g-work').value);
-        goals.water = parseFloat(document.getElementById('g-water').value);
-        localStorage.setItem('life_v9_goals', JSON.stringify(goals));
-        toggleModal(false);
-    }
-
-    // GRÁFICOS (TELA 2)
-    let charts = {};
     function renderCharts() {
-        if(charts.compare) charts.compare.destroy();
-        if(charts.line) charts.line.destroy();
-
-        // 1. Meta vs Realizado (Hoje)
+        Chart.defaults.color = '#94a3b8';
         const ctx1 = document.getElementById('chart-compare').getContext('2d');
-        charts.compare = new Chart(ctx1, {
+        if(window.c1) window.c1.destroy();
+        window.c1 = new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Sono', 'Trab.', 'Água'],
+                labels: ['Sono', 'Trabalho', 'Água'],
                 datasets: [
-                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water], backgroundColor: '#475569' },
-                    { label: 'Realizado', data: [dayData.sleep, dayData.work, dayData.water], backgroundColor: '#38bdf8' }
-                ]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-
-        // 2. Humor vs Sono (Últimos 7 registros)
-        const last7 = Object.keys(db).sort().slice(-7);
-        const ctx2 = document.getElementById('chart-line').getContext('2d');
-        charts.line = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: last7.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Humor', data: last7.map(d => db[d].humor), borderColor: '#fbbf24', tension: 0.3 },
-                    { label: 'Sono', data: last7.map(d => db[d].sleep), borderColor: '#818cf8', tension: 0.3 }
+                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water], backgroundColor: 'rgba(255,255,255,0.15)', borderColor: '#fff', borderWidth: 1, borderDash: [5, 5] },
+                    { label: 'Realizado', data: [dayData.sleep, dayData.work, dayData.water], backgroundColor: '#00d2ff', borderRadius: 5 }
                 ]
             }
         });
 
-        // 3. Heatmap Simples
+        const last7 = Object.keys(db).sort().slice(-7);
+        const ctx2 = document.getElementById('chart-line').getContext('2d');
+        if(window.c2) window.c2.destroy();
+        window.c2 = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: last7.map(d => d.split('-')[2]),
+                datasets: [
+                    { label: 'Humor', data: last7.map(d => db[d].humor), borderColor: '#ffcc00', tension: 0.4 },
+                    { label: 'Produtividade', data: last7.map(d => (db[d].status + 1) * 1.5), borderColor: '#39ff14', tension: 0.4 }
+                ]
+            }
+        });
+
         const heatmap = document.getElementById('heatmap');
         heatmap.innerHTML = '';
-        for(let i=1; i<=28; i++) {
-            const day = document.createElement('div');
-            day.style.height = '30px';
-            day.style.borderRadius = '4px';
-            day.style.background = i % 4 === 0 ? 'var(--success)' : '#1a1f32'; // Simulação de dados
-            heatmap.appendChild(day);
+        const now = new Date();
+        for(let i=27; i>=0; i--) {
+            const d = new Date(); d.setDate(now.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            const div = document.createElement('div');
+            div.className = 'heat-day';
+            if(db[key]) {
+                const s = db[key].status;
+                div.style.background = s===2?'var(--success)':s===1?'var(--warning)':'var(--danger)';
+            }
+            heatmap.appendChild(div);
         }
     }
 
+    function toggleModal(s) { 
+        document.getElementById('modal-goals').style.display = s ? 'flex' : 'none';
+        if(s) { ['sleep','work','water'].forEach(k => document.getElementById('g-'+k).value = goals[k]); }
+    }
+    function saveGoals() {
+        ['sleep','work','water'].forEach(k => goals[k] = parseFloat(document.getElementById('g-'+k).value));
+        localStorage.setItem('life_v9_2_goals', JSON.stringify(goals));
+        toggleModal(false);
+    }
     updateUI();
 </script>
 </body>
