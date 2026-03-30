@@ -3,142 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Routine Performance Pro</title>
+    <title>Routine Analytics v5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #38bdf8;
-            --success: #4ade80;
-            --warning: #fbbf24;
-            --text: #f8fafc;
-            --accent: #818cf8;
+            --bg: #0f172a; --card: #1e293b; --primary: #38bdf8;
+            --success: #4ade80; --warning: #fbbf24; --text: #f8fafc;
         }
-
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0; padding: 15px;
-            display: flex; flex-direction: column; align-items: center;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center;
         }
-
         .container { width: 100%; max-width: 450px; }
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+        h2 { font-size: 0.85rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        /* Estilo Humor e Produtividade */
+        .emoji-group { display: flex; justify-content: space-around; margin: 10px 0; }
+        .emoji-btn { 
+            font-size: 1.8rem; background: none; border: 2px solid transparent; 
+            border-radius: 12px; cursor: pointer; padding: 5px; filter: grayscale(1); transition: 0.3s;
         }
+        .emoji-btn.active { filter: grayscale(0); border-color: var(--primary); background: #334155; }
 
-        h2 { font-size: 0.9rem; margin: 0 0 15px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        .toggle-group { display: flex; gap: 10px; }
+        .toggle-btn { 
+            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155;
+            background: #0f172a; color: var(--text); font-weight: bold;
+        }
+        .toggle-btn.active { background: var(--success); color: #0f172a; border-color: var(--success); }
 
         /* Contadores */
-        .counter-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #334155;
-        }
+        .counter-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #334155; }
+        .counter-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-circle { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; }
+        .counter-val { font-size: 1rem; font-weight: bold; min-width: 60px; text-align: center; }
 
-        .counter-controls { display: flex; align-items: center; gap: 12px; }
-
-        .btn-circle {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: transparent;
-            color: var(--primary);
-            font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .counter-val { font-size: 1.1rem; font-weight: bold; min-width: 70px; text-align: center; }
-
-        .btn-save {
-            width: 100%; padding: 18px;
-            background: var(--primary);
-            color: #0f172a; border: none;
-            border-radius: 15px; font-weight: 800;
-            margin-top: 10px; cursor: pointer;
-        }
-
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .summary-item { background: var(--card); padding: 12px 5px; border-radius: 12px; text-align: center; }
-        .summary-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--success); }
-        .summary-label { font-size: 0.7rem; opacity: 0.7; }
+        .btn-save { width: 100%; padding: 18px; background: var(--primary); color: #0f172a; border: none; border-radius: 15px; font-weight: 800; margin-top: 15px; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .summary-item { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; }
+        .summary-val { display: block; font-size: 1.3rem; font-weight: bold; color: var(--success); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header style="text-align:center; padding: 10px 0;">
-        <h1 style="margin:0; font-size: 1.5rem;">Performance <span style="color:var(--primary)">Tracker</span></h1>
+        <h1 style="margin:0; font-size: 1.5rem;">Life <span style="color:var(--primary)">Dashboard</span></h1>
         <p id="display-date" style="opacity: 0.6; font-size: 0.8rem;"></p>
     </header>
 
     <div class="summary-grid">
-        <div class="summary-item"><span class="summary-val" id="total-work">0h</span><span class="summary-label">Trabalho</span></div>
-        <div class="summary-item"><span class="summary-val" id="avg-sleep">0h</span><span class="summary-label">Média Sono</span></div>
-        <div class="summary-item"><span class="summary-val" id="total-read">0h</span><span class="summary-label">Leitura</span></div>
+        <div class="summary-item"><span class="summary-val" id="stat-efficiency">0%</span><span>Produtividade</span></div>
+        <div class="summary-item"><span class="summary-val" id="stat-mood">--</span><span>Humor Médio</span></div>
     </div>
 
     <div class="card">
-        <h2>Distribuição de Horas (Últimos 7 dias)</h2>
-        <canvas id="timeChart" style="height: 200px;"></canvas>
+        <h2>Foco vs Descanso (7 dias)</h2>
+        <canvas id="mainChart" style="height: 180px;"></canvas>
     </div>
 
     <div class="card">
-        <h2>Registro do Dia</h2>
-        
-        <div class="counter-row">
-            <span>😴 Sono (horas)</span>
+        <h2>Como foi seu dia?</h2>
+        <div class="emoji-group" id="mood-selector">
+            <button class="emoji-btn" onclick="setMood(1)">😫</button>
+            <button class="emoji-btn" onclick="setMood(2)">😐</button>
+            <button class="emoji-btn" onclick="setMood(3)">😊</button>
+            <button class="emoji-btn" onclick="setMood(4)">🚀</button>
+        </div>
+
+        <h2>Dever Cumprido?</h2>
+        <div class="toggle-group">
+            <button id="prod-sim" class="toggle-btn" onclick="setProd(true)">SIM, FOI!</button>
+            <button id="prod-nao" class="toggle-btn" onclick="setProd(false)">NÃO MUITO</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Métricas de Tempo</h2>
+        <div class="counter-row"><span>😴 Sono</span>
             <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('sleep', -0.5)">-</button>
-                <span class="counter-val" id="val-sleep">0h</span>
-                <button class="btn-circle" onclick="changeVal('sleep', 0.5)">+</button>
+                <button class="btn-circle" onclick="change('sleep',-0.5)">-</button>
+                <span class="counter-val" id="v-sleep">0h</span>
+                <button class="btn-circle" onclick="change('sleep',0.5)">+</button>
+            </div>
+        </div>
+        <div class="counter-row"><span>💼 Trabalho</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="change('work',-0.5)">-</button>
+                <span class="counter-val" id="v-work">0h</span>
+                <button class="btn-circle" onclick="change('work',0.5)">+</button>
+            </div>
+        </div>
+        <div class="counter-row"><span>📖 Leitura</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="change('read',-0.25)">-</button>
+                <span class="counter-val" id="v-read">0h</span>
+                <button class="btn-circle" onclick="change('read',0.25)">+</button>
+            </div>
+        </div>
+        <div class="counter-row" style="border:none"><span>💧 Água (L)</span>
+            <div class="counter-controls">
+                <button class="btn-circle" onclick="change('water',-0.25)">-</button>
+                <span class="counter-val" id="v-water">0L</span>
+                <button class="btn-circle" onclick="change('water',0.25)">+</button>
             </div>
         </div>
 
-        <div class="counter-row">
-            <span>💼 Trabalho (horas)</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('work', -0.5)">-</button>
-                <span class="counter-val" id="val-work">0h</span>
-                <button class="btn-circle" onclick="changeVal('work', 0.5)">+</button>
-            </div>
-        </div>
-
-        <div class="counter-row">
-            <span>📖 Leitura (horas)</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('read', -0.25)">-</button>
-                <span class="counter-val" id="val-read">0h</span>
-                <button class="btn-circle" onclick="changeVal('read', 0.25)">+</button>
-            </div>
-        </div>
-
-        <div class="counter-row">
-            <span>💧 Água (L)</span>
-            <div class="counter-controls">
-                <button class="btn-circle" onclick="changeVal('water', -0.25)">-</button>
-                <span class="counter-val" id="val-water">0L</span>
-                <button class="btn-circle" onclick="changeVal('water', 0.25)">+</button>
-            </div>
-        </div>
-
-        <button class="btn-save" onclick="saveToday()">SALVAR NO GITHUB</button>
+        <button class="btn-save" onclick="save()">SALVAR REGISTRO</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('routine_v4_db')) || {};
+    let db = JSON.parse(localStorage.getItem('routine_v5_db')) || {};
     const today = new Date().toISOString().split('T')[0];
-    let currentDay = db[today] || { sleep: 0, work: 0, read: 0, water: 0 };
+    let dayData = db[today] || { sleep: 0, work: 0, read: 0, water: 0, mood: 0, productive: null };
+
+    const moodEmojis = ["--", "😫", "😐", "😊", "🚀"];
 
     function init() {
         document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', {dateStyle: 'full'});
@@ -146,63 +128,62 @@
         renderChart();
     }
 
-    function changeVal(type, amount) {
-        currentDay[type] = Math.max(0, currentDay[type] + amount);
-        updateUI();
-    }
+    function change(t, a) { dayData[t] = Math.max(0, dayData[t] + a); updateUI(); }
+    
+    function setMood(m) { dayData.mood = m; updateUI(); }
+    
+    function setProd(p) { dayData.productive = p; updateUI(); }
 
     function updateUI() {
-        document.getElementById('val-sleep').innerText = currentDay.sleep + 'h';
-        document.getElementById('val-work').innerText = currentDay.work + 'h';
-        document.getElementById('val-read').innerText = currentDay.read + 'h';
-        document.getElementById('val-water').innerText = currentDay.water.toFixed(2) + 'L';
+        document.getElementById('v-sleep').innerText = dayData.sleep + 'h';
+        document.getElementById('v-work').innerText = dayData.work + 'h';
+        document.getElementById('v-read').innerText = dayData.read + 'h';
+        document.getElementById('v-water').innerText = dayData.water.toFixed(2) + 'L';
+
+        // Atualiza botões de humor
+        document.querySelectorAll('.emoji-btn').forEach((btn, idx) => {
+            btn.classList.toggle('active', dayData.mood === idx + 1);
+        });
+
+        // Atualiza botões de produtividade
+        document.getElementById('prod-sim').classList.toggle('active', dayData.productive === true);
+        document.getElementById('prod-nao').classList.toggle('active', dayData.productive === false);
     }
 
-    function saveToday() {
-        db[today] = currentDay;
-        localStorage.setItem('routine_v4_db', JSON.stringify(db));
-        alert("Dados salvos!");
-        location.reload();
+    function save() {
+        db[today] = dayData;
+        localStorage.setItem('routine_v5_db', JSON.stringify(db));
+        alert("Dia registrado!"); location.reload();
     }
 
     function renderChart() {
-        const last7Days = Array.from({length: 7}, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
+        const last7 = Array.from({length: 7}, (_, i) => {
+            const d = new Date(); d.setDate(d.getDate() - i);
             return d.toISOString().split('T')[0];
         }).reverse();
 
-        const workData = last7Days.map(d => db[d]?.work || 0);
-        const sleepData = last7Days.map(d => db[d]?.sleep || 0);
-        const readData = last7Days.map(d => db[d]?.read || 0);
+        const work = last7.map(d => db[d]?.work || 0);
+        const sleep = last7.map(d => db[d]?.sleep || 0);
+        const moods = last7.filter(d => db[d]?.mood).map(d => db[d].mood);
+        const prodCount = last7.filter(d => db[d]?.productive === true).length;
 
-        // Totais e Médias
-        document.getElementById('total-work').innerText = workData.reduce((a,b)=>a+b, 0) + 'h';
-        const avgSleep = (sleepData.reduce((a,b)=>a+b, 0) / 7).toFixed(1);
-        document.getElementById('avg-sleep').innerText = avgSleep + 'h';
-        document.getElementById('total-read').innerText = readData.reduce((a,b)=>a+b, 0) + 'h';
+        // Resumos
+        document.getElementById('stat-efficiency').innerText = Math.round((prodCount/7)*100) + "%";
+        const avgM = moods.length ? Math.round(moods.reduce((a,b)=>a+b,0)/moods.length) : 0;
+        document.getElementById('stat-mood').innerText = moodEmojis[avgM];
 
-        new Chart(document.getElementById('timeChart'), {
+        new Chart(document.getElementById('mainChart'), {
             type: 'bar',
             data: {
-                labels: last7Days.map(d => d.split('-')[2]),
+                labels: last7.map(d => d.split('-')[2]),
                 datasets: [
-                    { label: 'Trabalho', data: workData, backgroundColor: '#38bdf8' },
-                    { label: 'Sono', data: sleepData, backgroundColor: '#818cf8' },
-                    { label: 'Leitura', data: readData, backgroundColor: '#4ade80' }
+                    { label: 'Trabalho', data: work, backgroundColor: '#38bdf8' },
+                    { label: 'Sono', data: sleep, backgroundColor: '#818cf8' }
                 ]
             },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { stacked: true, grid: { display: false } },
-                    y: { stacked: true, beginAtZero: true, grid: { color: '#334155' } }
-                },
-                plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', boxWidth: 12 } } }
-            }
+            options: { scales: { x: {stacked:true}, y: {stacked:true} }, plugins: { legend: {display: false} } }
         });
     }
-
     init();
 </script>
 </body>
