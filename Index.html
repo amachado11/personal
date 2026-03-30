@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Routine Tracker - Moto G34</title>
+    <title>Routine Pro - Analítico</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -11,11 +11,12 @@
             --card: #1e293b;
             --primary: #38bdf8;
             --success: #4ade80;
+            --warning: #fbbf24;
             --text: #f8fafc;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -25,144 +26,185 @@
             align-items: center;
         }
 
-        .container { width: 100%; max-width: 400px; }
-
-        header { text-align: center; margin: 20px 0; }
-        header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
-        #data-atual { opacity: 0.7; font-size: 0.9rem; }
+        .container { width: 100%; max-width: 450px; }
 
         .card {
             background: var(--card);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .habit-item {
+        h2 { font-size: 1.1rem; margin-top: 0; color: var(--primary); display: flex; justify-content: space-between; }
+
+        /* Grid de Status */
+        .grid-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: #334155;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 1.4rem; font-weight: bold; display: block; color: var(--success); }
+        .stat-label { font-size: 0.75rem; opacity: 0.7; text-transform: uppercase; }
+
+        /* Checklist */
+        .habit-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #334155;
         }
 
-        .habit-item:last-child { border-bottom: none; }
-
-        /* Custom Checkbox */
         input[type="checkbox"] {
-            width: 25px;
-            height: 25px;
-            accent-color: var(--success);
-            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            accent-color: var(--primary);
         }
 
-        .btn-save {
+        .btn-main {
             width: 100%;
             padding: 16px;
             background: var(--primary);
             color: #0f172a;
             border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-top: 10px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
+            border-radius: 14px;
+            font-weight: 800;
             margin-top: 15px;
-            text-align: center;
+            box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.39);
         }
 
-        .stat-number { display: block; font-size: 1.2rem; font-weight: bold; color: var(--success); }
+        #chart-container { height: 250px; position: relative; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>Minha Rotina</h1>
-        <p id="data-atual"></p>
+    <header style="text-align:center; padding: 20px 0;">
+        <h1 style="margin:0; font-size: 1.8rem;">Routine <span style="color:var(--primary)">Pro</span></h1>
+        <small id="current-date" style="opacity: 0.6;"></small>
     </header>
 
-    <div class="card">
-        <canvas id="meuGrafico"></canvas>
-        <div class="stats">
-            <div><span class="stat-number" id="dias-check">0</span><span>Dias</span></div>
-            <div><span class="stat-number" id="taxa-sucesso">0%</span><span>Meta</span></div>
+    <div class="grid-stats">
+        <div class="stat-item">
+            <span class="stat-value" id="streak-count">0</span>
+            <span class="stat-label">Dias Seguidos</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="month-efficiency">0%</span>
+            <span class="stat-label">Eficiência Mês</span>
         </div>
     </div>
 
     <div class="card">
-        <div class="habit-item"><span>💪 Exercício</span><input type="checkbox" id="ex"></div>
-        <div class="habit-item"><span>💻 Trabalho</span><input type="checkbox" id="tr"></div>
-        <div class="habit-item"><span>🥗 Saúde</span><input type="checkbox" id="al"></div>
-        <div class="habit-item"><span>📚 Estudo</span><input type="checkbox" id="es"></div>
-        <button class="btn-save" onclick="salvarProgresso()">Salvar Hoje</button>
+        <h2>Equilíbrio de Vida</h2>
+        <div id="chart-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Registro de Hoje</h2>
+        <div class="habit-row"><span>💪 Exercício</span><input type="checkbox" id="h-ex"></div>
+        <div class="habit-row"><span>💻 Trabalho</span><input type="checkbox" id="h-tr"></div>
+        <div class="habit-row"><span>🥗 Alimentação</span><input type="checkbox" id="h-al"></div>
+        <div class="habit-row"><span>📚 Estudo/Leitura</span><input type="checkbox" id="h-es"></div>
+        <button class="btn-main" onclick="saveData()">SALVAR DIA</button>
     </div>
 </div>
 
 <script>
-    // 1. Configuração de Data
-    const hoje = new Date().toISOString().split('T')[0];
-    document.getElementById('data-atual').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    let db = JSON.parse(localStorage.getItem('routine_db')) || {};
+    const today = new Date().toISOString().split('T')[0];
 
-    // 2. Carregar Dados
-    let historico = JSON.parse(localStorage.getItem('rotina_dados')) || {};
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' });
 
-    function salvarProgresso() {
-        const registro = {
-            ex: document.getElementById('ex').checked,
-            tr: document.getElementById('tr').checked,
-            al: document.getElementById('al').checked,
-            es: document.getElementById('es').checked
-        };
-        
-        historico[hoje] = registro;
-        localStorage.setItem('rotina_dados', JSON.stringify(historico));
-        alert("Progresso salvo!");
-        atualizarGrafico();
-    }
-
-    function atualizarGrafico() {
-        const dias = Object.keys(historico).length;
-        document.getElementById('dias-check').innerText = dias;
-
-        // Lógica simples para o gráfico (soma de todos os hábitos feitos)
-        let totais = [0, 0, 0, 0];
-        Object.values(historico).forEach(d => {
-            if(d.ex) totais[0]++;
-            if(d.tr) totais[1]++;
-            if(d.al) totais[2]++;
-            if(d.es) totais[3]++;
-        });
-
-        chart.data.datasets[0].data = totais;
-        chart.update();
-    }
-
-    // 3. Inicializar Gráfico
-    const ctx = document.getElementById('meuGrafico').getContext('2d');
+    // Inicializar Gráfico Radar (Mais tangível para equilíbrio)
     const chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'radar',
         data: {
-            labels: ['Exerc.', 'Trab.', 'Aliment.', 'Estudo'],
+            labels: ['Exercício', 'Trabalho', 'Saúde', 'Estudo'],
             datasets: [{
-                label: 'Dias Concluídos',
+                label: 'Frequência',
                 data: [0, 0, 0, 0],
-                backgroundColor: '#38bdf8'
+                backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                borderColor: '#38bdf8',
+                pointBackgroundColor: '#38bdf8'
             }]
         },
         options: {
-            scales: { y: { beginAtZero: true, grid: { color: '#334155' } } },
+            scales: {
+                r: {
+                    angleLines: { color: '#334155' },
+                    grid: { color: '#334155' },
+                    pointLabels: { color: '#f8fafc', font: { size: 12 } },
+                    ticks: { display: false, stepSize: 1 }
+                }
+            },
             plugins: { legend: { display: false } }
         }
     });
 
-    atualizarGrafico();
-</script>
+    function saveData() {
+        db[today] = {
+            ex: document.getElementById('h-ex').checked,
+            tr: document.getElementById('h-tr').checked,
+            al: document.getElementById('h-al').checked,
+            es: document.getElementById('h-es').checked
+        };
+        localStorage.setItem('routine_db', JSON.stringify(db));
+        updateDashboard();
+        alert("Dados atualizados com sucesso!");
+    }
 
+    function updateDashboard() {
+        const entries = Object.values(db);
+        const totalDays = entries.length;
+        
+        if (totalDays === 0) return;
+
+        // Calcular totais para o Radar
+        const sums = [
+            entries.filter(d => d.ex).length,
+            entries.filter(d => d.tr).length,
+            entries.filter(d => d.al).length,
+            entries.filter(d => d.es).length
+        ];
+
+        chart.data.datasets[0].data = sums;
+        chart.update();
+
+        // Cálculo de Eficiência (Média simples de todos os hábitos preenchidos)
+        const possibleActions = totalDays * 4;
+        const actualActions = sums.reduce((a, b) => a + b, 0);
+        const efficiency = ((actualActions / possibleActions) * 100).toFixed(0);
+        
+        document.getElementById('month-efficiency').innerText = efficiency + '%';
+        
+        // Lógica simples de Streak (Dias seguidos com pelo menos 1 tarefa)
+        let streak = 0;
+        let d = new Date();
+        while(true) {
+            let dateStr = d.toISOString().split('T')[0];
+            if(db[dateStr]) {
+                streak++;
+                d.setDate(d.getDate() - 1);
+            } else { break; }
+        }
+        document.getElementById('streak-count').innerText = streak;
+    }
+
+    updateDashboard();
+</script>
 </body>
 </html>
