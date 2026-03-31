@@ -3,51 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Life Dashboard v9.5</title>
+    <title>Life Dashboard v9.6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #0b1121; --card: #1e293b; --primary: #00d2ff;
             --success: #39ff14; --warning: #ffcc00; --danger: #ff3131;
-            --text: #ffffff; --neutral: #64748b;
+            --text: #ffffff;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .page { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
         .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        h2 { font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 1px; opacity: 0.8; }
+        h2 { font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px; }
 
-        .date-selector-container { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        #date-picker { background: transparent; border: 1px solid var(--primary); color: white; border-radius: 8px; padding: 8px; font-weight: bold; font-family: inherit; }
+        .selector-box { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        select, input[type="date"] { background: #0b1121; border: 1px solid var(--primary); color: white; border-radius: 8px; padding: 8px; font-weight: bold; }
 
         .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .btn-group { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 25px; }
-        .btn-act { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; font-size: 1.1rem; }
+        .btn-act { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; }
         .btn-act.minus { background: #475569; color: white; }
-        .val-display { min-width: 50px; text-align: center; font-weight: 800; font-size: 1rem; }
+        .val-display { min-width: 50px; text-align: center; font-weight: 800; }
 
         .status-row { display: flex; gap: 6px; margin-top: 8px; }
         .status-btn { flex: 1; padding: 12px 4px; border-radius: 12px; border: 1px solid #334155; background: rgba(255,255,255,0.02); color: white; font-size: 0.65rem; font-weight: 700; }
-        
-        .active-blue { background: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; }
-        .active-green { background: var(--success) !important; color: #000 !important; border-color: var(--success) !important; }
-        .active-yellow { background: var(--warning) !important; color: #000 !important; border-color: var(--warning) !important; }
-        .active-red { background: var(--danger) !important; color: #000 !important; border-color: var(--danger) !important; }
-        .active-gray { background: #94a3b8 !important; color: #000 !important; border-color: #94a3b8 !important; }
+        .active-blue { background: var(--primary) !important; color: #000 !important; }
+        .active-green { background: var(--success) !important; color: #000 !important; }
+        .active-yellow { background: var(--warning) !important; color: #000 !important; }
+        .active-red { background: var(--danger) !important; color: #000 !important; }
+        .active-gray { background: #94a3b8 !important; color: #000 !important; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #111827; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { text-align: center; color: #64748b; font-size: 0.7rem; flex: 1; padding: 10px; }
+        .nav-item { text-align: center; color: #64748b; font-size: 0.7rem; flex: 1; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 1.5rem; display: block; }
 
-        .btn-save { width: 100%; padding: 20px; border-radius: 18px; background: var(--primary); border: none; font-weight: 900; margin-top: 15px; font-size: 1rem; color: #000; }
-        
+        .btn-save { width: 100%; padding: 20px; border-radius: 18px; background: var(--primary); border: none; font-weight: 900; margin-top: 15px; color: #000; }
         #modal-goals { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; z-index: 2000; justify-content: center; align-items: center; }
-        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .heat-day { height: 28px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -58,30 +54,28 @@
             <button onclick="toggleModal(true)" style="background:rgba(255,255,255,0.05); border:none; border-radius: 12px; padding: 8px; font-size:1.2rem">⚙️</button>
         </header>
 
-        <div class="date-selector-container">
-            <span>📅 Data do Registro:</span>
+        <div class="selector-box">
+            <label style="font-size: 0.7rem; opacity: 0.7">EDITAR DATA:</label>
             <input type="date" id="date-picker" onchange="loadDate(this.value)">
         </div>
 
         <div class="card">
             <h2>🏥 Saúde & Corpo</h2>
-            <div class="row"><span>😴 Sono (Horas)</span><div class="btn-group"><button class="btn-act minus" onclick="change('sleep',-0.5)">-</button><span class="val-display" id="v-sleep">0h</span><button class="btn-act" onclick="change('sleep',0.5)">+</button></div></div>
-            <div style="margin: 12px 0 6px"><span style="font-size:0.85rem">Qualidade do Sono?</span></div>
+            <div class="row"><span>😴 Sono (h)</span><div class="btn-group"><button class="btn-act minus" onclick="change('sleep',-0.5)">-</button><span class="val-display" id="v-sleep">0h</span><button class="btn-act" onclick="change('sleep',0.5)">+</button></div></div>
             <div class="status-row">
-                <button id="db-1" class="status-btn" onclick="setSleepQuality(1)">✅ BEM</button>
-                <button id="db-0" class="status-btn" onclick="setSleepQuality(0)">❌ MAL</button>
+                <button id="db-1" class="status-btn" onclick="setSleepQuality(1)">✅ SONO OK</button>
+                <button id="db-0" class="status-btn" onclick="setSleepQuality(0)">❌ SONO RUIM</button>
             </div>
-            <div class="row" style="margin-top:12px"><span>💧 Água (Litros)</span><div class="btn-group"><button class="btn-act minus" onclick="change('water',-0.25)">-</button><span class="val-display" id="v-water">0L</span><button class="btn-act" onclick="change('water',0.25)">+</button></div></div>
-            <div class="row" style="border:none"><span>🏃 Cardio (Minutos)</span><div class="btn-group"><button class="btn-act minus" onclick="change('cardio',-5)">-</button><span class="val-display" id="v-cardio">0m</span><button class="btn-act" onclick="change('cardio',5)">+</button></div></div>
+            <div class="row" style="margin-top:12px"><span>💧 Água (L)</span><div class="btn-group"><button class="btn-act minus" onclick="change('water',-0.25)">-</button><span class="val-display" id="v-water">0L</span><button class="btn-act" onclick="change('water',0.25)">+</button></div></div>
+            <div class="row" style="border:none"><span>🏃 Cardio (m)</span><div class="btn-group"><button class="btn-act minus" onclick="change('cardio',-5)">-</button><span class="val-display" id="v-cardio">0m</span><button class="btn-act" onclick="change('cardio',5)">+</button></div></div>
         </div>
 
         <div class="card">
             <h2>🎯 Trabalho & Foco</h2>
             <div class="row"><span>💼 Horas Focadas</span><div class="btn-group"><button class="btn-act minus" onclick="change('work',-0.5)">-</button><span class="val-display" id="v-work">0h</span><button class="btn-act" onclick="change('work',0.5)">+</button></div></div>
-            <div style="margin: 12px 0 6px"><span style="font-size:0.85rem">Rendimento do Trabalho?</span></div>
             <div class="status-row">
                 <button id="wp-3" class="status-btn" onclick="setWorkProd(3)">🚀 ALTO</button>
-                <button id="wp-2" class="status-btn" onclick="setWorkProd(2)">⚖️ MÉDIO</button>
+                <button id="wp-2" class="status-btn" onclick="setWorkProd(2)">⚖️ +/-</button>
                 <button id="wp-1" class="status-btn" onclick="setWorkProd(1)">❌ BAIXO</button>
                 <button id="wp-0" class="status-btn" onclick="setWorkProd(0)">🏖️ OFF</button>
             </div>
@@ -96,7 +90,7 @@
                 <button id="h-4" class="status-btn" onclick="setHumor(4)">🙂</button>
                 <button id="h-5" class="status-btn" onclick="setHumor(5)">🤩</button>
             </div>
-            <div style="margin: 18px 0 6px"><span style="font-size:0.85rem">Alimentação</span></div>
+            <div style="margin: 15px 0 5px; font-size: 0.7rem; opacity: 0.7">DIETA:</div>
             <div class="status-row">
                 <button id="fd-2" class="status-btn" onclick="setFood(2)">🍎 LIMPA</button>
                 <button id="fd-1" class="status-btn" onclick="setFood(1)">⚖️ FLEX</button>
@@ -104,19 +98,33 @@
             </div>
         </div>
 
-        <button class="btn-save" onclick="saveData()">SALVAR REGISTRO</button>
+        <button class="btn-save" onclick="saveData()">SALVAR NO GITHUB</button>
     </div>
 
     <div id="page-stats" class="page">
-        <h1 style="font-size:1.4rem; font-weight: 900">Insights</h1>
-        <div class="card"><h2>Meta vs Realizado</h2><canvas id="chart-compare"></canvas></div>
-        <div class="card"><h2>Qualidade do Sono vs Humor</h2><canvas id="chart-line"></canvas></div>
-        <div class="card"><h2>Consistência (Últimos 28 dias)</h2><div id="heatmap" class="heatmap-grid"></div></div>
+        <h1 style="font-size:1.4rem; font-weight: 900">Análise de Dados</h1>
+        
+        <div class="selector-box">
+            <label style="font-size: 0.7rem; opacity: 0.7">VER PERÍODO:</label>
+            <select id="range-picker" onchange="renderCharts()">
+                <option value="1">Apenas o dia selecionado</option>
+                <option value="7" selected>Últimos 7 dias (Média)</option>
+                <option value="15">Últimos 15 dias (Média)</option>
+                <option value="30">Últimos 30 dias (Média)</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <h2>Meta vs Realizado</h2>
+            <canvas id="chart-compare"></canvas>
+        </div>
+        
+        <p style="font-size: 0.7rem; opacity: 0.5; text-align: center">Os dados são buscados do histórico salvo no seu Moto G34.</p>
     </div>
 
     <div id="modal-goals">
         <div class="card" style="width:85%">
-            <h2>Metas</h2>
+            <h2 style="text-align:center">Configurar Metas</h2>
             <div class="row"><span>Sono (h)</span><input type="number" id="g-sleep" step="0.5" style="width:60px"></div>
             <div class="row"><span>Trab (h)</span><input type="number" id="g-work" step="0.5" style="width:60px"></div>
             <div class="row"><span>Água (L)</span><input type="number" id="g-water" step="0.1" style="width:60px"></div>
@@ -127,11 +135,11 @@
 
     <nav class="bottom-nav">
         <div class="nav-item active" id="nav-action" onclick="showPage('action')"><span class="nav-icon">📝</span>Lançar</div>
-        <div class="nav-item" id="nav-stats" onclick="showPage('stats')"><span class="nav-icon">📈</span>Insights</div>
+        <div class="nav-item" id="nav-stats" onclick="showPage('stats')"><span class="nav-icon">📊</span>Gráficos</div>
     </nav>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('life_v9_4_db')) || {}; // Mantém a chave v9.4 para não perder seus dados
+    let db = JSON.parse(localStorage.getItem('life_v9_4_db')) || {};
     let goals = JSON.parse(localStorage.getItem('life_v9_4_goals')) || { sleep: 8, work: 8, water: 2.5, cardio: 30 };
     
     let currentSelectedDate = new Date().toISOString().split('T')[0];
@@ -171,52 +179,39 @@
         if(document.getElementById('fd-'+dData.food)) document.getElementById('fd-'+dData.food).classList.add(dData.food===2?'active-green':dData.food===1?'active-yellow':'active-red');
     }
 
-    function saveData() { db[currentSelectedDate] = dData; localStorage.setItem('life_v9_4_db', JSON.stringify(db)); alert("Salvo em " + currentSelectedDate); }
+    function saveData() { db[currentSelectedDate] = dData; localStorage.setItem('life_v9_4_db', JSON.stringify(db)); alert("Dados salvos!"); }
 
     function renderCharts() {
-        Chart.defaults.color = '#94a3b8';
+        const range = parseInt(document.getElementById('range-picker').value);
+        let chartData = { sleep: 0, work: 0, water: 0, cardio: 0 };
+
+        if (range === 1) {
+            chartData = dData;
+        } else {
+            const dates = Object.keys(db).sort().slice(-range);
+            dates.forEach(d => {
+                chartData.sleep += db[d].sleep || 0;
+                chartData.work += db[d].work || 0;
+                chartData.water += db[d].water || 0;
+                chartData.cardio += db[d].cardio || 0;
+            });
+            const count = dates.length || 1;
+            chartData.sleep /= count; chartData.work /= count; chartData.water /= count; chartData.cardio /= count;
+        }
+
         const ctx1 = document.getElementById('chart-compare').getContext('2d');
         if(window.c1) window.c1.destroy();
         window.c1 = new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Sono', 'Trabalho', 'Água', 'Cardio'],
+                labels: ['Sono', 'Trab.', 'Água', 'Cardio'],
                 datasets: [
-                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water, goals.cardio], backgroundColor: 'rgba(255,255,255,0.1)', barPercentage: 0.5 },
-                    { label: 'Realizado', data: [dData.sleep, dData.work, dData.water, dData.cardio], backgroundColor: '#00d2ff', borderRadius: 4, barPercentage: 0.5 }
+                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water, goals.cardio], backgroundColor: 'rgba(255,255,255,0.1)', barPercentage: 0.6 },
+                    { label: range === 1 ? 'Realizado' : 'Média', data: [chartData.sleep, chartData.work, chartData.water, chartData.cardio], backgroundColor: '#00d2ff', borderRadius: 4, barPercentage: 0.6 }
                 ]
             },
-            options: { scales: { y: { beginAtZero: true } } }
+            options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: true, position: 'bottom' } } }
         });
-
-        const last7 = Object.keys(db).sort().slice(-7);
-        const ctx2 = document.getElementById('chart-line').getContext('2d');
-        if(window.c2) window.c2.destroy();
-        window.c2 = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: last7.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Humor', data: last7.map(d => db[d].humor), borderColor: '#00d2ff', tension: 0.4 },
-                    { label: 'Sono OK', data: last7.map(d => db[d].sleepQ * 5), borderColor: '#39ff14', borderDash: [5,5], pointRadius: 0 }
-                ]
-            },
-            options: { scales: { y: { min: 0, max: 5 } } }
-        });
-
-        const heatmap = document.getElementById('heatmap');
-        heatmap.innerHTML = '';
-        for(let i=27; i>=0; i--) {
-            const date = new Date(); date.setDate(date.getDate() - i);
-            const k = date.toISOString().split('T')[0];
-            const div = document.createElement('div'); div.className = 'heat-day';
-            if(db[k]) {
-                const s = db[k].workP;
-                div.style.background = s > 0 ? 'var(--success)' : '#475569';
-                if(s === 3) div.style.boxShadow = '0 0 8px var(--success)';
-            }
-            heatmap.appendChild(div);
-        }
     }
 
     function toggleModal(s) { document.getElementById('modal-goals').style.display = s ? 'flex' : 'none'; if(s) ['sleep','work','water','cardio'].forEach(k => document.getElementById('g-'+k).value = goals[k]); }
