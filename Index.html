@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Life Dashboard v9.3 - Expert</title>
+    <title>Life Dashboard v9.5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -12,24 +12,25 @@
             --text: #ffffff; --neutral: #64748b;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
         .page { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
         .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        h2 { font-size: 0.8rem; color: var(--primary); text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 1px; }
+        h2 { font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 1px; opacity: 0.8; }
 
-        /* Controles de Lançamento */
+        .date-selector-container { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #date-picker { background: transparent; border: 1px solid var(--primary); color: white; border-radius: 8px; padding: 8px; font-weight: bold; font-family: inherit; }
+
         .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .btn-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 25px; }
-        .btn-act { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; }
+        .btn-group { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 25px; }
+        .btn-act { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--primary); color: #000; font-weight: bold; font-size: 1.1rem; }
         .btn-act.minus { background: #475569; color: white; }
-        .val-display { min-width: 55px; text-align: center; font-weight: bold; font-size: 1rem; }
+        .val-display { min-width: 50px; text-align: center; font-weight: 800; font-size: 1rem; }
 
-        /* Selectores de Nível (Status/Humor/Alimento) */
-        .status-row { display: flex; gap: 5px; margin-top: 5px; }
-        .status-btn { flex: 1; padding: 10px 2px; border-radius: 10px; border: 1px solid #475569; background: transparent; color: white; font-size: 0.65rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .status-row { display: flex; gap: 6px; margin-top: 8px; }
+        .status-btn { flex: 1; padding: 12px 4px; border-radius: 12px; border: 1px solid #334155; background: rgba(255,255,255,0.02); color: white; font-size: 0.65rem; font-weight: 700; }
         
         .active-blue { background: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; }
         .active-green { background: var(--success) !important; color: #000 !important; border-color: var(--success) !important; }
@@ -37,55 +38,57 @@
         .active-red { background: var(--danger) !important; color: #000 !important; border-color: var(--danger) !important; }
         .active-gray { background: #94a3b8 !important; color: #000 !important; border-color: #94a3b8 !important; }
 
-        /* Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #1a2236; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #111827; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
         .nav-item { text-align: center; color: #64748b; font-size: 0.7rem; flex: 1; padding: 10px; }
-        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 1.5rem; display: block; }
 
-        .btn-save { width: 100%; padding: 18px; border-radius: 15px; background: var(--primary); border: none; font-weight: 900; margin-top: 10px; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,210,255,0.3); }
+        .btn-save { width: 100%; padding: 20px; border-radius: 18px; background: var(--primary); border: none; font-weight: 900; margin-top: 15px; font-size: 1rem; color: #000; }
         
-        /* Modal */
-        #modal-goals { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; z-index: 2000; justify-content: center; align-items: center; }
-        
-        canvas { max-height: 220px; }
+        #modal-goals { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; z-index: 2000; justify-content: center; align-items: center; }
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .heat-day { height: 28px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
 
     <div id="page-action" class="page active-page">
         <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-            <h1 style="margin:0; font-size:1.3rem">Lançamento Diário</h1>
-            <button onclick="toggleModal(true)" style="background:none; border:none; font-size:1.4rem">⚙️</button>
+            <h1 style="margin:0; font-size:1.4rem; font-weight: 900">Rotina <span style="color:var(--primary)">Diária</span></h1>
+            <button onclick="toggleModal(true)" style="background:rgba(255,255,255,0.05); border:none; border-radius: 12px; padding: 8px; font-size:1.2rem">⚙️</button>
         </header>
 
-        <div class="card">
-            <h2>🏥 Bloco Saúde</h2>
-            <div class="row"><span>😴 Sono</span><div class="btn-group"><button class="btn-act minus" onclick="change('sleep',-0.5)">-</button><span class="val-display" id="v-sleep">0h</span><button class="btn-act" onclick="change('sleep',0.5)">+</button></div></div>
-            <div style="margin: 10px 0 5px"><span>Dormiu bem?</span></div>
-            <div class="status-row">
-                <button id="db-1" class="status-btn" onclick="setSleepQuality(1)">✅ SIM</button>
-                <button id="db-0" class="status-btn" onclick="setSleepQuality(0)">❌ NÃO</button>
-            </div>
-            <div class="row" style="margin-top:10px"><span>💧 Água</span><div class="btn-group"><button class="btn-act minus" onclick="change('water',-0.25)">-</button><span class="val-display" id="v-water">0L</span><button class="btn-act" onclick="change('water',0.25)">+</button></div></div>
-            <div class="row" style="border:none"><span>🏃 Cardio</span><div class="btn-group"><button class="btn-act minus" onclick="change('cardio',-5)">-</button><span class="val-display" id="v-cardio">0m</span><button class="btn-act" onclick="change('cardio',5)">+</button></div></div>
+        <div class="date-selector-container">
+            <span>📅 Data do Registro:</span>
+            <input type="date" id="date-picker" onchange="loadDate(this.value)">
         </div>
 
         <div class="card">
-            <h2>🎯 Bloco Foco</h2>
-            <div class="row"><span>💼 Trabalho</span><div class="btn-group"><button class="btn-act minus" onclick="change('work',-0.5)">-</button><span class="val-display" id="v-work">0h</span><button class="btn-act" onclick="change('work',0.5)">+</button></div></div>
-            <div style="margin: 10px 0 5px"><span>Produtividade?</span></div>
+            <h2>🏥 Saúde & Corpo</h2>
+            <div class="row"><span>😴 Sono (Horas)</span><div class="btn-group"><button class="btn-act minus" onclick="change('sleep',-0.5)">-</button><span class="val-display" id="v-sleep">0h</span><button class="btn-act" onclick="change('sleep',0.5)">+</button></div></div>
+            <div style="margin: 12px 0 6px"><span style="font-size:0.85rem">Qualidade do Sono?</span></div>
             <div class="status-row">
-                <button id="wp-3" class="status-btn" onclick="setWorkProd(3)">🚀 SIM</button>
-                <button id="wp-2" class="status-btn" onclick="setWorkProd(2)">⚖️ +/-</button>
-                <button id="wp-1" class="status-btn" onclick="setWorkProd(1)">❌ NÃO</button>
+                <button id="db-1" class="status-btn" onclick="setSleepQuality(1)">✅ BEM</button>
+                <button id="db-0" class="status-btn" onclick="setSleepQuality(0)">❌ MAL</button>
+            </div>
+            <div class="row" style="margin-top:12px"><span>💧 Água (Litros)</span><div class="btn-group"><button class="btn-act minus" onclick="change('water',-0.25)">-</button><span class="val-display" id="v-water">0L</span><button class="btn-act" onclick="change('water',0.25)">+</button></div></div>
+            <div class="row" style="border:none"><span>🏃 Cardio (Minutos)</span><div class="btn-group"><button class="btn-act minus" onclick="change('cardio',-5)">-</button><span class="val-display" id="v-cardio">0m</span><button class="btn-act" onclick="change('cardio',5)">+</button></div></div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Trabalho & Foco</h2>
+            <div class="row"><span>💼 Horas Focadas</span><div class="btn-group"><button class="btn-act minus" onclick="change('work',-0.5)">-</button><span class="val-display" id="v-work">0h</span><button class="btn-act" onclick="change('work',0.5)">+</button></div></div>
+            <div style="margin: 12px 0 6px"><span style="font-size:0.85rem">Rendimento do Trabalho?</span></div>
+            <div class="status-row">
+                <button id="wp-3" class="status-btn" onclick="setWorkProd(3)">🚀 ALTO</button>
+                <button id="wp-2" class="status-btn" onclick="setWorkProd(2)">⚖️ MÉDIO</button>
+                <button id="wp-1" class="status-btn" onclick="setWorkProd(1)">❌ BAIXO</button>
                 <button id="wp-0" class="status-btn" onclick="setWorkProd(0)">🏖️ OFF</button>
             </div>
-            <div class="row" style="border:none; margin-top:10px"><span>📖 Leitura</span><div class="btn-group"><button class="btn-act minus" onclick="change('read',-0.25)">-</button><span class="val-display" id="v-read">0h</span><button class="btn-act" onclick="change('read',0.25)">+</button></div></div>
         </div>
 
         <div class="card">
-            <h2>🌈 Feedback & Alimentação</h2>
-            <div style="margin-bottom:5px"><span>Humor Geral</span></div>
+            <h2>🌈 Humor & Dieta</h2>
             <div class="status-row">
                 <button id="h-1" class="status-btn" onclick="setHumor(1)">😫</button>
                 <button id="h-2" class="status-btn" onclick="setHumor(2)">😕</button>
@@ -93,10 +96,10 @@
                 <button id="h-4" class="status-btn" onclick="setHumor(4)">🙂</button>
                 <button id="h-5" class="status-btn" onclick="setHumor(5)">🤩</button>
             </div>
-            <div style="margin: 15px 0 5px"><span>Alimentação</span></div>
+            <div style="margin: 18px 0 6px"><span style="font-size:0.85rem">Alimentação</span></div>
             <div class="status-row">
                 <button id="fd-2" class="status-btn" onclick="setFood(2)">🍎 LIMPA</button>
-                <button id="fd-1" class="status-btn" onclick="setFood(1)">⚖️ MÉDIA</button>
+                <button id="fd-1" class="status-btn" onclick="setFood(1)">⚖️ FLEX</button>
                 <button id="fd-0" class="status-btn" onclick="setFood(0)">🍕 LIXO</button>
             </div>
         </div>
@@ -105,33 +108,42 @@
     </div>
 
     <div id="page-stats" class="page">
-        <h1 style="font-size:1.3rem">Insights</h1>
-        <div class="card"><h2>Meta x Realizado (Volume)</h2><canvas id="chart-compare"></canvas></div>
+        <h1 style="font-size:1.4rem; font-weight: 900">Insights</h1>
+        <div class="card"><h2>Meta vs Realizado</h2><canvas id="chart-compare"></canvas></div>
         <div class="card"><h2>Qualidade do Sono vs Humor</h2><canvas id="chart-line"></canvas></div>
-        <div class="card"><h2>Frequência (Últimos 28 dias)</h2><div id="heatmap" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:4px"></div></div>
+        <div class="card"><h2>Consistência (Últimos 28 dias)</h2><div id="heatmap" class="heatmap-grid"></div></div>
     </div>
 
     <div id="modal-goals">
         <div class="card" style="width:85%">
-            <h2>Metas Diárias</h2>
-            <div class="row"><span>Sono (h)</span><input type="number" id="g-sleep" step="0.5" style="width:50px"></div>
-            <div class="row"><span>Trab (h)</span><input type="number" id="g-work" step="0.5" style="width:50px"></div>
-            <div class="row"><span>Água (L)</span><input type="number" id="g-water" step="0.1" style="width:50px"></div>
-            <div class="row"><span>Cardio (m)</span><input type="number" id="g-cardio" step="5" style="width:50px"></div>
+            <h2>Metas</h2>
+            <div class="row"><span>Sono (h)</span><input type="number" id="g-sleep" step="0.5" style="width:60px"></div>
+            <div class="row"><span>Trab (h)</span><input type="number" id="g-work" step="0.5" style="width:60px"></div>
+            <div class="row"><span>Água (L)</span><input type="number" id="g-water" step="0.1" style="width:60px"></div>
+            <div class="row"><span>Cardio (m)</span><input type="number" id="g-cardio" step="5" style="width:60px"></div>
             <button class="btn-save" onclick="saveGoals()">FECHAR</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" id="nav-action" onclick="showPage('action')"><span>📝</span><br>Lançar</div>
-        <div class="nav-item" id="nav-stats" onclick="showPage('stats')"><span>📈</span><br>Gráficos</div>
+        <div class="nav-item active" id="nav-action" onclick="showPage('action')"><span class="nav-icon">📝</span>Lançar</div>
+        <div class="nav-item" id="nav-stats" onclick="showPage('stats')"><span class="nav-icon">📈</span>Insights</div>
     </nav>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('life_v9_3_db')) || {};
-    let goals = JSON.parse(localStorage.getItem('life_v9_3_goals')) || { sleep: 8, work: 8, water: 2.5, cardio: 30, read: 0.5 };
-    const today = new Date().toISOString().split('T')[0];
-    let dData = db[today] || { sleep: 0, sleepQ: 1, water: 0, cardio: 0, work: 0, workP: 2, read: 0, humor: 3, food: 2 };
+    let db = JSON.parse(localStorage.getItem('life_v9_4_db')) || {}; // Mantém a chave v9.4 para não perder seus dados
+    let goals = JSON.parse(localStorage.getItem('life_v9_4_goals')) || { sleep: 8, work: 8, water: 2.5, cardio: 30 };
+    
+    let currentSelectedDate = new Date().toISOString().split('T')[0];
+    document.getElementById('date-picker').value = currentSelectedDate;
+
+    let dData = db[currentSelectedDate] || { sleep: 0, sleepQ: 1, water: 0, cardio: 0, work: 0, workP: 2, humor: 3, food: 2 };
+
+    function loadDate(newDate) {
+        currentSelectedDate = newDate;
+        dData = db[currentSelectedDate] || { sleep: 0, sleepQ: 1, water: 0, cardio: 0, work: 0, workP: 2, humor: 3, food: 2 };
+        updateUI();
+    }
 
     function showPage(p) {
         document.querySelectorAll('.page, .nav-item').forEach(el => el.classList.remove('active-page', 'active'));
@@ -151,17 +163,15 @@
         document.getElementById('v-water').innerText = dData.water.toFixed(2) + 'L';
         document.getElementById('v-cardio').innerText = dData.cardio + 'm';
         document.getElementById('v-work').innerText = dData.work + 'h';
-        document.getElementById('v-read').innerText = dData.read + 'h';
         
-        // Estilização dos botões
         document.querySelectorAll('.status-btn').forEach(b => b.className = 'status-btn');
-        document.getElementById('db-'+dData.sleepQ).classList.add(dData.sleepQ ? 'active-green' : 'active-red');
-        document.getElementById('wp-'+dData.workP).classList.add(dData.workP===3?'active-green':dData.workP===2?'active-yellow':dData.workP===1?'active-red':'active-gray');
-        document.getElementById('h-'+dData.humor).classList.add('active-blue');
-        document.getElementById('fd-'+dData.food).classList.add(dData.food===2?'active-green':dData.food===1?'active-yellow':'active-red');
+        if(document.getElementById('db-'+dData.sleepQ)) document.getElementById('db-'+dData.sleepQ).classList.add(dData.sleepQ ? 'active-green' : 'active-red');
+        if(document.getElementById('wp-'+dData.workP)) document.getElementById('wp-'+dData.workP).classList.add(dData.workP===3?'active-green':dData.workP===2?'active-yellow':dData.workP===1?'active-red':'active-gray');
+        if(document.getElementById('h-'+dData.humor)) document.getElementById('h-'+dData.humor).classList.add('active-blue');
+        if(document.getElementById('fd-'+dData.food)) document.getElementById('fd-'+dData.food).classList.add(dData.food===2?'active-green':dData.food===1?'active-yellow':'active-red');
     }
 
-    function saveData() { db[today] = dData; localStorage.setItem('life_v9_3_db', JSON.stringify(db)); alert("Dados salvos!"); }
+    function saveData() { db[currentSelectedDate] = dData; localStorage.setItem('life_v9_4_db', JSON.stringify(db)); alert("Salvo em " + currentSelectedDate); }
 
     function renderCharts() {
         Chart.defaults.color = '#94a3b8';
@@ -170,12 +180,13 @@
         window.c1 = new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Sono', 'Trab.', 'Água', 'Cardio'],
+                labels: ['Sono', 'Trabalho', 'Água', 'Cardio'],
                 datasets: [
-                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water, goals.cardio], backgroundColor: 'rgba(255,255,255,0.1)', borderColor: '#fff', borderWidth: 1 },
-                    { label: 'Realizado', data: [dData.sleep, dData.work, dData.water, dData.cardio], backgroundColor: '#00d2ff' }
+                    { label: 'Meta', data: [goals.sleep, goals.work, goals.water, goals.cardio], backgroundColor: 'rgba(255,255,255,0.1)', barPercentage: 0.5 },
+                    { label: 'Realizado', data: [dData.sleep, dData.work, dData.water, dData.cardio], backgroundColor: '#00d2ff', borderRadius: 4, barPercentage: 0.5 }
                 ]
-            }
+            },
+            options: { scales: { y: { beginAtZero: true } } }
         });
 
         const last7 = Object.keys(db).sort().slice(-7);
@@ -186,10 +197,11 @@
             data: {
                 labels: last7.map(d => d.split('-')[2]),
                 datasets: [
-                    { label: 'Humor', data: last7.map(d => db[d].humor), borderColor: '#00d2ff' },
-                    { label: 'Sono OK (0/1)', data: last7.map(d => db[d].sleepQ * 5), borderColor: '#39ff14', borderDash: [5,5] }
+                    { label: 'Humor', data: last7.map(d => db[d].humor), borderColor: '#00d2ff', tension: 0.4 },
+                    { label: 'Sono OK', data: last7.map(d => db[d].sleepQ * 5), borderColor: '#39ff14', borderDash: [5,5], pointRadius: 0 }
                 ]
-            }
+            },
+            options: { scales: { y: { min: 0, max: 5 } } }
         });
 
         const heatmap = document.getElementById('heatmap');
@@ -197,22 +209,18 @@
         for(let i=27; i>=0; i--) {
             const date = new Date(); date.setDate(date.getDate() - i);
             const k = date.toISOString().split('T')[0];
-            const div = document.createElement('div');
-            div.style.height = '25px'; div.style.borderRadius = '4px';
-            div.style.background = db[k] ? (db[k].workP > 0 ? 'var(--success)' : '#475569') : 'rgba(255,255,255,0.05)';
+            const div = document.createElement('div'); div.className = 'heat-day';
+            if(db[k]) {
+                const s = db[k].workP;
+                div.style.background = s > 0 ? 'var(--success)' : '#475569';
+                if(s === 3) div.style.boxShadow = '0 0 8px var(--success)';
+            }
             heatmap.appendChild(div);
         }
     }
 
-    function toggleModal(s) { 
-        document.getElementById('modal-goals').style.display = s ? 'flex' : 'none';
-        if(s) ['sleep','work','water','cardio'].forEach(k => document.getElementById('g-'+k).value = goals[k]);
-    }
-    function saveGoals() {
-        ['sleep','work','water','cardio'].forEach(k => goals[k] = parseFloat(document.getElementById('g-'+k).value));
-        localStorage.setItem('life_v9_3_goals', JSON.stringify(goals));
-        toggleModal(false);
-    }
+    function toggleModal(s) { document.getElementById('modal-goals').style.display = s ? 'flex' : 'none'; if(s) ['sleep','work','water','cardio'].forEach(k => document.getElementById('g-'+k).value = goals[k]); }
+    function saveGoals() { ['sleep','work','water','cardio'].forEach(k => goals[k] = parseFloat(document.getElementById('g-'+k).value)); localStorage.setItem('life_v9_4_goals', JSON.stringify(goals)); toggleModal(false); }
     updateUI();
 </script>
 </body>
